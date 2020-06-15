@@ -21,7 +21,9 @@ modules: [
 Модуль активирует подгрузку скриптов Yandex.Metrika только в режиме production (process.env.NODE_ENV),
 в режиме develop вместо подгрузки скриптов Yandex.Metrika используется mock Yandex.Metrika.
 
-[Ссылка на документацию Yandex.Metrika](https://yandex.com/support/metrica/code/counter-initialize.html).
+Больше информации по Yandex.Metrika:
+
+* [Ссылка на документацию Yandex.Metrika](https://yandex.com/support/metrica/code/counter-initialize.html).
 
 ID Yandex.Metrika можно задать как в настройках модуля в nuxt.config.js:
 
@@ -81,5 +83,7 @@ methods: {
     },
 ```
 
-[Ссылка на документацию Nuxt.js docs](https://nuxtjs.org).
-[Ссылка на документацию Nuxt.js Module docs](https://nuxtjs.org/api/internals-module-container#introduction).
+Больше информации:
+
+* [Ссылка на документацию Nuxt.js docs](https://nuxtjs.org).
+* [Ссылка на документацию Nuxt.js Module docs](https://nuxtjs.org/api/internals-module-container#introduction).
