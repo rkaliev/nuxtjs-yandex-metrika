@@ -21,8 +21,12 @@
     "lib"
   ],
   "keywords": [
-    "nuxtjs",
-    "yandex-metrika"
+    "nuxt.js", "nuxtjs", "analytics",
+    "metrics", "metrika", "yandex",
+    "yandex metrika", "yandex-metrika", "module", "plugin",
+    "javascript", "js",
+    "front-end", "frontend",
+    "web"
   ],
   "publishConfig": {
     "access": "public"
