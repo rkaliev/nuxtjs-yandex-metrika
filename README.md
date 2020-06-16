@@ -2,6 +2,10 @@
 
 ## Установка и настройка модуля
 
+```code
+npm i @rkaliev/nuxtjs-yandex-metrika
+```
+
 Необходимо в nuxt.config.js в секции modules добавить:
 
 ```code
@@ -83,7 +87,7 @@ methods: {
     },
 ```
 
-Больше информации:
+Больше информации по Nuxt.js:
 
 * [Ссылка на документацию Nuxt.js docs](https://nuxtjs.org).
 * [Ссылка на документацию Nuxt.js Module docs](https://nuxtjs.org/api/internals-module-container#introduction).
