@@ -1,6 +1,6 @@
-# NuxtJS модуль для подключения Yandex.Metrika
+# NuxtJS модуль/плагин для подключения Yandex.Metrika(Яндекс.Метрика)
 
-## Установка и настройка модуля
+## Установка и настройка модуля/плагина
 
 ```code
 npm i @rkaliev/nuxtjs-yandex-metrika
@@ -22,14 +22,14 @@ modules: [
   ],
 ```
 
-Модуль активирует подгрузку скриптов Yandex.Metrika только в режиме production (process.env.NODE_ENV),
-в режиме develop вместо подгрузки скриптов Yandex.Metrika используется mock Yandex.Metrika.
+Модуль/Плагин активирует подгрузку скриптов Yandex.Metrika(Яндекс.Метрика) только в режиме production (process.env.NODE_ENV),
+в режиме develop вместо подгрузки скриптов Yandex.Metrika(Яндекс.Метрика) используется mock Yandex.Metrika.
 
-Больше информации по Yandex.Metrika:
+Больше информации по Yandex.Metrika(Яндекс.Метрика):
 
-* [Ссылка на документацию Yandex.Metrika](https://yandex.com/support/metrica/code/counter-initialize.html).
+* [Ссылка на документацию Yandex.Metrika(Яндекс.Метрика)](https://yandex.com/support/metrica/code/counter-initialize.html).
 
-ID Yandex.Metrika можно задать как в настройках модуля в nuxt.config.js:
+ID Yandex.Metrika(Яндекс.Метрика) можно задать как в настройках модуля в nuxt.config.js:
 
 ```code
 modules: [
@@ -50,7 +50,7 @@ modules: [
 YM_ID=XXXXXXX
 ```
 
-Модуль можно запускать в режиме debug, используется mock Yandex.Metrika и происходит вывод в консоль ивентов и параметров:
+Модуль/Плагин можно запускать в режиме debug, используется mock Yandex.Metrika(Яндекс.Метрика) и происходит вывод в консоль ивентов и параметров:
 
 ```code
 modules: [
@@ -73,7 +73,7 @@ https://test.domain.ru/?_ym_debug=1
 
 ## Использование
 
-После установки Яндекс.Метрика доступна через this.$yandexMetrika.
+После установки Yandex.Metrika(Яндекс.Метрика) доступна через this.$yandexMetrika.
 
 Пример:
 
