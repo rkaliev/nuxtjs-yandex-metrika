@@ -17,6 +17,7 @@ modules: [
         webvisor: boolean,
         clickmap: boolean,
         debug: boolean,
+        noJS: boolean,
       },
     ],
   ],
@@ -24,6 +25,9 @@ modules: [
 
 Модуль/Плагин активирует подгрузку скриптов Yandex.Metrika(Яндекс.Метрика) только в режиме production (process.env.NODE_ENV),
 в режиме develop вместо подгрузки скриптов Yandex.Metrika(Яндекс.Метрика) используется mock Yandex.Metrika.
+
+Параметр [noJS](https://yandex.ru/support/metrica/code/counter-initialize.html) отвечает за инициализацию счетчика через
+```<noscript></noscript>``` и ```<img/>```.
 
 Больше информации по Yandex.Metrika(Яндекс.Метрика):
 
