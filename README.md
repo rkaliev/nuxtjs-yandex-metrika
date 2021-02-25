@@ -18,6 +18,7 @@ modules: [
         clickmap: boolean,
         debug: boolean,
         noJS: boolean,
+        disabled: boolean,
       },
     ],
   ],
