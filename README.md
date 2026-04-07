@@ -1,10 +1,10 @@
 # @rkaliev/nuxt-yandex-metrika
 
-Nuxt 3 module for [Yandex Metrika](https://metrika.yandex.ru/).
+Nuxt 4 module for [Yandex Metrika](https://metrika.yandex.ru/).
 
 ## Features
 
-- Nuxt 3 with TypeScript support
+- Nuxt 4 with TypeScript support
 - SSR-safe composable `useYandexMetrika()`
 - Auto-tracking page navigations
 - Mock API in development mode with debug logging
@@ -14,7 +14,7 @@ Nuxt 3 module for [Yandex Metrika](https://metrika.yandex.ru/).
 ## Installation
 
 ```bash
-npm install @rkaliev/nuxt-yandex-metrika
+npm install @rkaliev/nuxt-yandex-metrika@3
 ```
 
 ## Configuration
@@ -95,7 +95,7 @@ YM_ID=12345678
 - **SSR**: Returns noop API on server, real/mock on client
 - **Script failure**: Falls back to mock API with `console.error`
 
-## Migration from v1
+## Migration from v1 (to v2)
 
 ### Breaking changes
 
@@ -114,6 +114,20 @@ YM_ID=12345678
    + modules: ['@rkaliev/nuxt-yandex-metrika'],
    ```
 3. Replace `this.$yandexMetrika` with `useYandexMetrika()` in components
+
+## Migration from v2 (to v3)
+
+### Breaking changes
+
+- Requires Nuxt 4.0.0+
+- Requires Node.js 18+
+
+### Migration steps
+
+1. Update package: `npm install @rkaliev/nuxt-yandex-metrika@3`
+2. No API changes — updating the dependency is sufficient
+
+> **Still on Nuxt 3?** Use the v2 line: `npm install @rkaliev/nuxt-yandex-metrika@nuxt3`
 
 ## Development
 
