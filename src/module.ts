@@ -8,7 +8,7 @@ export default defineNuxtModule<ModuleOptions>({
     name: '@rkaliev/nuxt-yandex-metrika',
     configKey: 'yandexMetrika',
     compatibility: {
-      nuxt: '>=3.0.0',
+      nuxt: '>=4.0.0',
     },
   },
   defaults: DEFAULT_OPTIONS,

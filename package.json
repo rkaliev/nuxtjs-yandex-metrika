@@ -1,7 +1,7 @@
 {
   "name": "@rkaliev/nuxt-yandex-metrika",
-  "version": "2.0.4",
-  "description": "Nuxt 3 module for Yandex Metrika",
+  "version": "3.0.0",
+  "description": "Nuxt 4 module for Yandex Metrika",
   "type": "module",
   "repository": {
     "type": "git",
@@ -34,6 +34,7 @@
   ],
   "keywords": [
     "nuxt",
+    "nuxt4",
     "nuxt3",
     "nuxtjs",
     "analytics",
@@ -54,19 +55,19 @@
     "node": ">=18"
   },
   "peerDependencies": {
-    "nuxt": "^3.16.0"
+    "nuxt": "^4.0.0"
   },
   "dependencies": {
-    "@nuxt/kit": "^3.16.0",
+    "@nuxt/kit": "^4.0.0",
     "defu": "^6.1.4"
   },
   "devDependencies": {
     "@nuxt/module-builder": "^1.0.2",
-    "@nuxt/test-utils": "^3.17.2",
+    "@nuxt/test-utils": "^4.0.0",
     "@types/node": "^25.5.2",
     "happy-dom": "^20.8.9",
-    "nuxt": "^3.16.0",
+    "nuxt": "^4.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.1.0"
+    "vitest": "^4.0.0"
   }
 }

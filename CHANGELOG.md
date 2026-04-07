@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0] - 2026-04-08
+
+### Breaking
+
+- Minimum Nuxt version: 4.0.0 (drop Nuxt 3 support)
+- Minimum Node.js version: 18
+
+### Changed
+
+- Update @nuxt/kit to ^4.0.0
+- Update @nuxt/test-utils to ^4.0.0
+- Update vitest to ^4.0.0
+- Migrate playground to Nuxt 4 directory structure
+
 ## [2.0.4] - 2026-04-08
 
 ### Added
