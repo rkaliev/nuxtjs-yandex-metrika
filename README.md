@@ -1,98 +1,129 @@
-# NuxtJS модуль/плагин для подключения Yandex.Metrika(Яндекс.Метрика)
+# @rkaliev/nuxt-yandex-metrika
 
-## Установка и настройка модуля/плагина
+Nuxt 3 module for [Yandex Metrika](https://metrika.yandex.ru/).
 
-```code
-npm i @rkaliev/nuxtjs-yandex-metrika
+## Features
+
+- Nuxt 3 with TypeScript support
+- SSR-safe composable `useYandexMetrika()`
+- Auto-tracking page navigations
+- Mock API in development mode with debug logging
+- Graceful fallback on script load failure
+- `<noscript>` pixel support
+
+## Installation
+
+```bash
+npm install @rkaliev/nuxt-yandex-metrika
 ```
 
-Необходимо в nuxt.config.js в секции modules добавить:
+## Configuration
 
-```code
-modules: [
-    [
-      '@rkaliev/nuxtjs-yandex-metrika',
-      {
-        id: 'XXXXXX',
-        webvisor: boolean,
-        clickmap: boolean,
-        debug: boolean,
-        noJS: boolean,
-        disabled: boolean,
-      },
-    ],
-  ],
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ['@rkaliev/nuxt-yandex-metrika'],
+  yandexMetrika: {
+    id: '12345678', // or env NUXT_PUBLIC_YANDEX_METRIKA_ID / YM_ID
+  },
+})
 ```
 
-Модуль/Плагин активирует подгрузку скриптов Yandex.Metrika(Яндекс.Метрика) только в режиме production (process.env.NODE_ENV),
-в режиме develop вместо подгрузки скриптов Yandex.Metrika(Яндекс.Метрика) используется mock Yandex.Metrika.
+### All options
 
-Параметр [noJS](https://yandex.ru/support/metrica/code/counter-initialize.html) отвечает за инициализацию счетчика через
-```<noscript></noscript>``` и ```<img/>```.
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `id` | `string` | `''` | Yandex Metrika counter ID |
+| `disabled` | `boolean` | `false` | Disable tracking entirely |
+| `debug` | `boolean` | `false` | Log all API calls to console |
+| `useCDN` | `boolean` | `false` | Use CDN for tag.js |
+| `noJS` | `boolean` | `true` | Inject `<noscript>` pixel |
+| `autoTracking` | `boolean` | `true` | Auto-track page navigations |
+| `clickmap` | `boolean` | `true` | Enable click map |
+| `trackLinks` | `boolean` | `true` | Track outbound links |
+| `accurateTrackBounce` | `boolean` | `true` | Accurate bounce tracking |
+| `webvisor` | `boolean` | `false` | Enable Webvisor |
+| `defer` | `boolean` | `true` | Deferred initialization |
+| `triggerEvent` | `boolean` | `true` | Trigger `yacounter<id>inited` event |
+| `ecommerce` | `boolean \| string` | `false` | E-commerce data layer |
+| `ut` | `string` | `'noindex'` | User tracking parameter |
 
-Больше информации по Yandex.Metrika(Яндекс.Метрика):
+## Usage
 
-* [Ссылка на документацию Yandex.Metrika(Яндекс.Метрика)](https://yandex.com/support/metrica/code/counter-initialize.html).
+### Composable (recommended)
 
-ID Yandex.Metrika(Яндекс.Метрика) можно задать как в настройках модуля в nuxt.config.js:
+```vue
+<script setup>
+const ym = useYandexMetrika()
 
-```code
-modules: [
-    [
-      '@rkaliev/nuxtjs-yandex-metrika',
-      {
-        ...
-        id: 'XXXXXX',
-        ...
-      },
-    ],
-  ],
+function onBuy() {
+  ym.reachGoal('purchase', { price: 1000 })
+}
+</script>
 ```
 
-либо можно задать переменную в .env файле:
+### API methods
 
-```code
-YM_ID=XXXXXXX
+| Method | Description |
+|---|---|
+| `hit(url, options?)` | Track page view |
+| `reachGoal(target, params?, callback?, ctx?)` | Track goal |
+| `params(params)` | Set session parameters |
+| `userParams(params)` | Set user parameters |
+| `setUserID(userID)` | Set user ID |
+| `getClientID(callback)` | Get client ID |
+| `notBounce(options?)` | Mark as not bounce |
+| `addFileExtension(ext)` | Add file extension for tracking |
+| `extLink(url, options?)` | Track external link |
+| `file(url, options?)` | Track file download |
+| `replacePhones()` | Replace phone numbers |
+
+### Environment variables
+
+You can set the counter ID via environment variables instead of `nuxt.config.ts`:
+
+```
+NUXT_PUBLIC_YANDEX_METRIKA_ID=12345678
+# or
+YM_ID=12345678
 ```
 
-Модуль/Плагин можно запускать в режиме debug, используется mock Yandex.Metrika(Яндекс.Метрика) и происходит вывод в консоль ивентов и параметров:
+## How it works
 
-```code
-modules: [
-    [
-      '@rkaliev/nuxtjs-yandex-metrika',
-      {
-        ...
-        debug: true,
-        ...
-      },
-    ],
-  ],
+- **Production**: Loads `tag.js`, initializes the counter, provides real API
+- **Development**: Uses mock API (with optional debug logging)
+- **SSR**: Returns noop API on server, real/mock on client
+- **Script failure**: Falls back to mock API with `console.error`
+
+## Migration from v1
+
+### Breaking changes
+
+- Package renamed: `@rkaliev/nuxtjs-yandex-metrika` → `@rkaliev/nuxt-yandex-metrika`
+- Requires Nuxt 3+
+- `this.$yandexMetrika` → `useYandexMetrika()` composable (or `$yandexMetrika` via `useNuxtApp()`)
+- `defer: true` is now the default
+- `noJS: true` is now the default
+
+### Migration steps
+
+1. Update package: `npm install @rkaliev/nuxt-yandex-metrika@2`
+2. Update `nuxt.config.ts`:
+   ```diff
+   - modules: ['@rkaliev/nuxtjs-yandex-metrika'],
+   + modules: ['@rkaliev/nuxt-yandex-metrika'],
+   ```
+3. Replace `this.$yandexMetrika` with `useYandexMetrika()` in components
+
+## Development
+
+```bash
+npm install
+npm run dev        # Start playground
+npm run build      # Build module
+npm run test       # Run tests
 ```
 
-Так же можно использовать qs параметры:
+## License
 
-```code
-https://test.domain.ru/?_ym_debug=1
-```
-
-## Использование
-
-После установки Yandex.Metrika(Яндекс.Метрика) доступна через this.$yandexMetrika.
-
-Пример:
-
-```code
-methods: {
-    /**
-     * @param {string} eventName
-     */
-    sendYandexMetrikaEvent(eventName) {
-      this.$yandexMetrika.reachGoal(eventName);
-    },
-```
-
-Больше информации по Nuxt.js:
-
-* [Ссылка на документацию Nuxt.js docs](https://nuxtjs.org).
-* [Ссылка на документацию Nuxt.js Module docs](https://nuxtjs.org/api/internals-module-container#introduction).
+[MIT](./LICENSE)
