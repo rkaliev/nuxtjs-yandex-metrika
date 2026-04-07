@@ -1,6 +1,6 @@
 {
   "name": "@rkaliev/nuxt-yandex-metrika",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Nuxt 3 module for Yandex Metrika",
   "type": "module",
   "repository": {
@@ -50,6 +50,12 @@
     "access": "public"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "peerDependencies": {
+    "nuxt": "^3.16.0"
+  },
   "dependencies": {
     "@nuxt/kit": "^3.16.0",
     "defu": "^6.1.4"
