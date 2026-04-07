@@ -1,6 +1,6 @@
 {
   "name": "@rkaliev/nuxt-yandex-metrika",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Nuxt 3 module for Yandex Metrika",
   "type": "module",
   "repository": {
