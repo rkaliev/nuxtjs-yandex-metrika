@@ -58,7 +58,8 @@ describe('module registration', () => {
   })
 
   it('should store a numeric id in runtimeConfig as a string', async () => {
-    const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { id: 99999999 } } })
+    // A JS nuxt.config can set it as a number
+    const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { id: 99999999 as unknown as string } } })
 
     try {
       const config = nuxt.options.runtimeConfig.public.yandexMetrika as Record<string, unknown>
