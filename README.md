@@ -130,6 +130,7 @@ Known limitations:
 - Navigation hits rely on the page hooks of `<NuxtPage>`. An app without `<NuxtPage>` gets only the entry page hit and hits for error pages; send the others with `hit()`.
 - When an async page throws a fatal error after setting its title, the hit carries that page's title instead of the error page's.
 - When an async page's setup throws a non-fatal error, that page and its query changes are not tracked until the next page renders.
+- An error page hit waits up to 300 ms for the error page's head. If the error page loads its content lazily and that takes longer (Nuxt's default error page on a slow first load), the hit carries the previous page's title.
 
 ## Migration from v1 (to v2)
 
