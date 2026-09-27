@@ -5,6 +5,7 @@ import { useNuxtApp, useRuntimeConfig } from '#imports'
 import type { YandexMetrikaApi, HitOptions, YandexMetrikaInitOptions } from '../../src/module'
 import type { ModuleOptions } from '../../src/runtime/types'
 
+// Nuxt also infers these two from the plugin's provide, so they hold without the template's #app/vue blocks
 expectTypeOf(useNuxtApp().$yandexMetrika).toEqualTypeOf<YandexMetrikaApi>()
 expectTypeOf<ComponentCustomProperties['$yandexMetrika']>().toEqualTypeOf<YandexMetrikaApi>()
 expectTypeOf(useRuntimeConfig().public.yandexMetrika).toEqualTypeOf<Required<ModuleOptions>>()

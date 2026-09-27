@@ -156,4 +156,16 @@ describe('module registration', () => {
       await nuxt.close()
     }
   })
+
+  it('should register the type template when the counter is disabled', async () => {
+    const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { disabled: true } } })
+
+    try {
+      const filenames = nuxt.options.build.templates.map(t => t.filename)
+      expect(filenames).toContain('types/yandex-metrika.d.ts')
+    }
+    finally {
+      await nuxt.close()
+    }
+  })
 })
