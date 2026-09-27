@@ -63,6 +63,38 @@ describe('e2e tracking in production', async () => {
     await page.close()
   })
 
+  it('should finish hydration without waiting for the hit', async () => {
+    const { page } = await openPage('/', async (page) => {
+      await page.route(SCRIPT_GLOB, route => route.fulfill({ contentType: 'text/javascript', body: '' }))
+      // Records when Nuxt reports the end of hydration
+      await page.addInitScript(() => {
+        const w = window as unknown as { useNuxtApp?: () => { isHydrating?: boolean }, hydratedAt?: number }
+        const check = () => {
+          try {
+            if (w.useNuxtApp?.().isHydrating === false) {
+              w.hydratedAt = performance.now()
+              return
+            }
+          }
+          catch {
+            // The Nuxt app does not exist yet
+          }
+          requestAnimationFrame(check)
+        }
+        requestAnimationFrame(check)
+      })
+    })
+
+    const { hydratedAt, domContentLoaded } = await page.evaluate(() => ({
+      hydratedAt: (window as unknown as { hydratedAt: number }).hydratedAt,
+      domContentLoaded: (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming).domContentLoadedEventEnd,
+    }))
+    // Without the fix hydration ended only at the 1000 ms head render timeout
+    expect(hydratedAt - domContentLoaded).toBeLessThan(500)
+
+    await page.close()
+  })
+
   it('should send a hit with the title for the entry page', async () => {
     const { page } = await openWithStubbedScript('/')
 

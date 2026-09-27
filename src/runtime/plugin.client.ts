@@ -33,6 +33,10 @@ export default defineNuxtPlugin((nuxtApp) => {
 
     setupAutoTracking(router, {
       onPageReady: (callback) => {
+        // Never returned to Nuxt: its hooks await their handlers, and hydration would wait for the hit
+        const flush = () => {
+          void callback()
+        }
         // Extra signals are harmless: the pending hit is taken once
         let pageRendering = false
         nuxtApp.hook('page:start', () => {
@@ -40,21 +44,23 @@ export default defineNuxtPlugin((nuxtApp) => {
         })
         nuxtApp.hook('page:finish', () => {
           pageRendering = false
-          return callback()
+          flush()
         })
         // Only the query changed: no page:start/page:finish, but page:loading:end fires.
         // A failed navigation also fires it: ignore it while a page renders, or the hit gets the old title
-        nuxtApp.hook('page:loading:end', () => pageRendering ? undefined : callback())
+        nuxtApp.hook('page:loading:end', () => {
+          if (!pageRendering) flush()
+        })
         // The entry page
-        nuxtApp.hook('app:suspense:resolve', callback)
+        nuxtApp.hook('app:suspense:resolve', flush)
         // An error page (e.g. a client-side 404) replaces the page without any page hook: wait for its head
-        nuxtApp.hook('app:error', async () => {
-          await nextHeadRender()
-          await callback()
+        nuxtApp.hook('app:error', () => {
+          void nextHeadRender().then(callback)
         })
       },
       getTitle: async () => {
-        await headRendered()
+        // While hydrating, head rendering is paused until hydration ends, and the SSR title is already in place
+        if (!nuxtApp.isHydrating) await headRendered()
         return document.title
       },
       isHydrationPlaceholder: fullPath =>
