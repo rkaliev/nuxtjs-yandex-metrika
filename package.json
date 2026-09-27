@@ -56,7 +56,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "peerDependencies": {
     "nuxt": "^4.0.0"

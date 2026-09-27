@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- `engines.node` aligned with Nuxt 4: `^20.19.0 || >=22.12.0`
+
 ## [3.0.0] - 2026-04-08
 
 ### Breaking
