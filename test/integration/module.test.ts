@@ -138,4 +138,34 @@ describe('module registration', () => {
     const warnings = await buildWarnings({ id: '', disabled: true })
     expect(warnings.some(text => text.includes(MISSING_ID_WARNING))).toBe(false)
   })
+
+  it('should register the yandex-metrika type template', async () => {
+    const nuxt = await loadNuxt({ cwd: rootDir, ready: true })
+
+    try {
+      const template = nuxt.options.build.templates.find(t => t.filename === 'types/yandex-metrika.d.ts')
+      const contents = await template?.getContents?.({ nuxt, app: nuxt.apps.default!, options: {} })
+      expect(contents).toContain('declare module \'#app\'')
+      expect(contents).toContain('declare module \'vue\'')
+      expect(contents).toContain('declare module \'nuxt/schema\'')
+      expect(contents).toContain('$yandexMetrika: YandexMetrikaApi')
+      expect(contents).toContain('yandexMetrika: Required<ModuleOptions>')
+      expect(contents).not.toContain('interface Window')
+    }
+    finally {
+      await nuxt.close()
+    }
+  })
+
+  it('should register the type template when the counter is disabled', async () => {
+    const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { disabled: true } } })
+
+    try {
+      const filenames = nuxt.options.build.templates.map(t => t.filename)
+      expect(filenames).toContain('types/yandex-metrika.d.ts')
+    }
+    finally {
+      await nuxt.close()
+    }
+  })
 })

@@ -1,9 +1,3 @@
-declare global {
-  interface Window {
-    ym: ((...args: unknown[]) => void) & { a?: unknown[], l?: number }
-  }
-}
-
 export function loadScript(url: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // Create ym stub that queues calls

@@ -1,7 +1,9 @@
-import { defineNuxtModule, addPlugin, addImports, createResolver, useLogger } from '@nuxt/kit'
+import { defineNuxtModule, addPlugin, addImports, addTypeTemplate, createResolver, useLogger } from '@nuxt/kit'
 import { defu } from 'defu'
 import type { ModuleOptions } from './runtime/types'
 import { DEFAULT_OPTIONS, NOSCRIPT_PIXEL_URL } from './runtime/utils/constants'
+
+export type { YandexMetrikaApi, HitOptions, YandexMetrikaInitOptions } from './runtime/types'
 
 export default defineNuxtModule<ModuleOptions>({
   meta: {
@@ -50,6 +52,33 @@ export default defineNuxtModule<ModuleOptions>({
     addPlugin({
       src: resolver.resolve('./runtime/plugin.client'),
       mode: 'client',
+    })
+
+    // Type augmentations for consumer apps
+    addTypeTemplate({
+      filename: 'types/yandex-metrika.d.ts',
+      getContents: () => `import type { YandexMetrikaApi, ModuleOptions } from '${resolver.resolve('./runtime/types')}'
+
+declare module '#app' {
+  interface NuxtApp {
+    $yandexMetrika: YandexMetrikaApi
+  }
+}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $yandexMetrika: YandexMetrikaApi
+  }
+}
+
+declare module 'nuxt/schema' {
+  interface PublicRuntimeConfig {
+    yandexMetrika: Required<ModuleOptions>
+  }
+}
+
+export {}
+`,
     })
 
     // Auto-import composable

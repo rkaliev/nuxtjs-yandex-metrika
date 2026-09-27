@@ -39,5 +39,3 @@ export interface YandexMetrikaApi {
   file(url: string, options?: Record<string, unknown>): void
   replacePhones(): void
 }
-
-// Type augmentations are in types.augment.d.ts (loaded by Nuxt at runtime)

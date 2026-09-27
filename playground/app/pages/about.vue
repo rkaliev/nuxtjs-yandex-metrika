@@ -13,6 +13,12 @@
         About with query
       </NuxtLink> changes only the query: the same page, still a new hit.
     </p>
+    <button
+      class="hint"
+      @click="$yandexMetrika.reachGoal('about-click')"
+    >
+      Reach goal
+    </button>
   </div>
 </template>
 
