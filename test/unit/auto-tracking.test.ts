@@ -9,6 +9,7 @@ type ReadyCallback = Parameters<PageLifecycle['onPageReady']>[0]
 function setup(
   resolve: NavigationRouter['resolve'] = fullPath => ({ href: fullPath }),
   isHydrationPlaceholder: PageLifecycle['isHydrationPlaceholder'] = () => false,
+  withTitle = true,
 ) {
   const guards: Guard[] = []
   const readyCallbacks: ReadyCallback[] = []
@@ -16,7 +17,7 @@ function setup(
   const state = { title: 'Home' }
   const page: PageLifecycle = {
     onPageReady: callback => readyCallbacks.push(callback),
-    getTitle: async () => state.title,
+    ...(withTitle && { getTitle: async () => state.title }),
     isHydrationPlaceholder,
   }
   const api = createNoopApi()
@@ -32,7 +33,7 @@ function setup(
     navigate('/', '/')
     await ready()
   }
-  return { hit, navigate, ready, enter, state }
+  return { hit, navigate, ready, enter, state, readyCallbacks }
 }
 
 describe('setupAutoTracking', () => {
@@ -138,5 +139,25 @@ describe('setupAutoTracking', () => {
     await ready()
 
     expect(hit).toHaveBeenCalledOnce()
+  })
+
+  it('should send hits without a title when the page gives no title', async () => {
+    const { hit, navigate, ready, enter } = setup(undefined, undefined, false)
+
+    await enter()
+    navigate('/about', '/')
+    await ready()
+
+    // toStrictEqual: a `title: undefined` key would still reach Metrika
+    expect(hit.mock.calls).toStrictEqual([['/', {}], ['/about', { referer: '/' }]])
+  })
+
+  it('should send the hit as soon as the page is ready when the page gives no title', () => {
+    const { hit, navigate, readyCallbacks } = setup(undefined, undefined, false)
+
+    navigate('/', '/')
+    void readyCallbacks[0]!()
+
+    expect(hit).toHaveBeenCalledWith('/', {})
   })
 })

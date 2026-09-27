@@ -47,11 +47,14 @@ const plugin: Plugin<{ yandexMetrika: YandexMetrikaApi }> = defineNuxtPlugin((nu
           void nextHeadRender(true).then(callback)
         })
       },
-      getTitle: async () => {
-        // While hydrating, head rendering is paused until hydration ends, and the SSR title is already in place
-        if (!nuxtApp.isHydrating) await headRendered()
-        return document.title
-      },
+      // sendTitle: false keeps titles out of Metrika, including the ones auto-tracking would pass
+      ...(config.sendTitle !== false && {
+        getTitle: async () => {
+          // While hydrating, head rendering is paused until hydration ends, and the SSR title is already in place
+          if (!nuxtApp.isHydrating) await headRendered()
+          return document.title
+        },
+      }),
       isHydrationPlaceholder: fullPath =>
         !!nuxtApp.isHydrating && fullPath === payloadPath && fullPath !== initialFullPath,
     }, api)

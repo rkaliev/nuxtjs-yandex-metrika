@@ -47,6 +47,14 @@ export default defineNuxtConfig({
 | `triggerEvent` | `boolean` | `true` | Trigger `yacounter<id>inited` event |
 | `ecommerce` | `boolean \| string` | `false` | E-commerce data layer |
 | `ut` | `string` | `'noindex'` | User tracking parameter |
+| `trackHash` | `boolean` | `false` | Track hash changes in the address bar (see [Auto-tracking](#auto-tracking)) |
+| `sendTitle` | `boolean` | `true` | Send page titles; set `false` if titles contain private data |
+| `childIframe` | `boolean` | `false` | Record the content of iframes without a counter |
+| `trustedDomains` | `string[]` | `[]` | Trusted domains for recording the content of a child iframe |
+| `disableYtm` | `boolean` | `false` | Turn off Yandex Tag Manager on the page |
+| `type` | `number` | `0` | Counter type (`1` for the Yandex Advertising Network) |
+| `params` | `object \| array` | `{}` | Session parameters sent on init (an empty value is not sent) |
+| `userParams` | `object` | `{}` | User parameters sent on init (an empty value is not sent) |
 
 ## Usage
 
@@ -119,11 +127,13 @@ With `autoTracking: true` (the default) the module sends page views with `hit()`
 
 - The entry page is tracked; Metrika takes its referer from `document.referrer`
 - Every client-side navigation to a new URL is tracked, including a change of the query only. The `referer` is the previous tracked URL
-- The hit is sent once the page has rendered, with its `title`
+- The hit is sent once the page has rendered, with its `title`. With `sendTitle: false` the hit has no `title` and is sent as soon as the page is ready
 - No hit for a failed or aborted navigation, or when the URL did not change
 - URLs include `app.baseURL`
 - Error pages (for example, a client-side 404) are tracked
 - Prerendered (SSG) pages are tracked once, with their real URL
+
+Router hash changes (`router.push('#section')`, `<NuxtLink to="#section">`) are tracked like any other URL change. `trackHash: true` makes Metrika count hash changes too, so a hash change can be counted twice; the build warns about this combination. Use one of them: `trackHash` with `autoTracking: false`, or `autoTracking` alone.
 
 Known limitations:
 

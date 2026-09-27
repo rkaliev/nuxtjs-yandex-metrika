@@ -8,6 +8,7 @@ const __dir = dirname(fileURLToPath(import.meta.url))
 const rootDir = resolve(__dir, '../../playground')
 
 const MISSING_ID_WARNING = 'Counter ID is not set'
+const TRACK_HASH_WARNING = 'counted twice'
 
 /** Loads playground with `options` and returns the text of every warning the build logged */
 async function buildWarnings(options: Record<string, unknown>): Promise<string[]> {
@@ -51,6 +52,38 @@ describe('module registration', () => {
       expect(config.noJS).toBe(true)
       expect(config.defer).toBe(true) // default
       expect(config.autoTracking).toBe(true) // default
+    }
+    finally {
+      await nuxt.close()
+    }
+  })
+
+  it('should store the Metrika defaults for the new init options', async () => {
+    const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { id: '99999999' } } })
+
+    try {
+      expect(nuxt.options.runtimeConfig.public.yandexMetrika).toMatchObject({
+        trackHash: false,
+        sendTitle: true,
+        childIframe: false,
+        disableYtm: false,
+        type: 0,
+        params: {},
+        userParams: {},
+        trustedDomains: [],
+      })
+    }
+    finally {
+      await nuxt.close()
+    }
+  })
+
+  it('should keep trustedDomains as configured', async () => {
+    const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { id: '99999999', trustedDomains: ['a.com'] } } })
+
+    try {
+      const config = nuxt.options.runtimeConfig.public.yandexMetrika as Record<string, unknown>
+      expect(config.trustedDomains).toEqual(['a.com'])
     }
     finally {
       await nuxt.close()
@@ -150,6 +183,21 @@ describe('module registration', () => {
   it('should not warn at build time when the counter is disabled', async () => {
     const warnings = await buildWarnings({ id: '', disabled: true })
     expect(warnings.some(text => text.includes(MISSING_ID_WARNING))).toBe(false)
+  })
+
+  it('should warn at build time when trackHash is used with autoTracking', async () => {
+    const warnings = await buildWarnings({ id: '99999999', trackHash: true })
+    expect(warnings.some(text => text.includes(TRACK_HASH_WARNING))).toBe(true)
+  })
+
+  it('should not warn about trackHash without autoTracking', async () => {
+    const warnings = await buildWarnings({ id: '99999999', trackHash: true, autoTracking: false })
+    expect(warnings.some(text => text.includes(TRACK_HASH_WARNING))).toBe(false)
+  })
+
+  it('should not warn about trackHash when the counter is disabled', async () => {
+    const warnings = await buildWarnings({ id: '99999999', trackHash: true, disabled: true })
+    expect(warnings.some(text => text.includes(TRACK_HASH_WARNING))).toBe(false)
   })
 
   it('should register the yandex-metrika type template', async () => {

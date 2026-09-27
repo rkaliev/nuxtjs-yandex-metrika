@@ -105,6 +105,11 @@ describe('buildInitOptions', () => {
       triggerEvent: true,
       ut: 'noindex',
       webvisor: false,
+      trackHash: true,
+      sendTitle: false,
+      childIframe: true,
+      disableYtm: true,
+      type: 1,
       useCDN: false,
       disabled: false,
       debug: true,
@@ -121,6 +126,11 @@ describe('buildInitOptions', () => {
       triggerEvent: true,
       ut: 'noindex',
       webvisor: false,
+      trackHash: true,
+      sendTitle: false,
+      childIframe: true,
+      disableYtm: true,
+      type: 1,
     })
 
     // Should NOT include non-init keys
@@ -136,5 +146,23 @@ describe('buildInitOptions', () => {
     const result = buildInitOptions({ clickmap: true })
     expect(result).toEqual({ clickmap: true })
     expect(Object.keys(result)).toHaveLength(1)
+  })
+
+  it.each([
+    ['params as an object', { params: {} }],
+    ['params as an array', { params: [] }],
+    ['userParams', { userParams: {} }],
+    ['trustedDomains', { trustedDomains: [] }],
+  ])('should omit %s when it is empty', (_, options) => {
+    expect(buildInitOptions(options)).toEqual({})
+  })
+
+  it.each([
+    ['params as an object', { params: { a: 1 } }],
+    ['params as an array', { params: [{ a: 1 }] }],
+    ['userParams', { userParams: { b: 2 } }],
+    ['trustedDomains', { trustedDomains: ['a.com'] }],
+  ])('should pass %s when it is set', (_, options) => {
+    expect(buildInitOptions(options)).toEqual(options)
   })
 })

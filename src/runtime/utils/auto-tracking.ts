@@ -1,4 +1,4 @@
-import type { YandexMetrikaApi } from '../types'
+import type { HitOptions, YandexMetrikaApi } from '../types'
 
 export interface RouteLike {
   fullPath: string
@@ -12,7 +12,8 @@ export interface NavigationRouter {
 export interface PageLifecycle {
   /** Registers `callback` for the moment a navigation has rendered its page */
   onPageReady(callback: () => Promise<void>): unknown
-  getTitle(): Promise<string>
+  /** Absent when titles must not be sent (`sendTitle: false`) */
+  getTitle?(): Promise<string>
   /** True for a route rendered only to hydrate a prerendered payload before the real URL replaces it */
   isHydrationPlaceholder(fullPath: string): boolean
 }
@@ -41,8 +42,10 @@ export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle,
     const referer = lastSent
     pending = undefined
     lastSent = url
-    const title = await page.getTitle()
     // The entry page has no referer here: Metrika uses the document's own
-    api.hit(url, referer === undefined ? { title } : { referer, title })
+    const options: HitOptions = referer === undefined ? {} : { referer }
+    // Without getTitle the hit goes out right away, with no wait for the head
+    if (page.getTitle) options.title = await page.getTitle()
+    api.hit(url, options)
   })
 }
