@@ -26,7 +26,8 @@
     "test:watch": "vitest watch",
     "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
     "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "author": "Ruslan Aliev",
   "contributors": [
@@ -72,6 +73,7 @@
     "eslint": "^10.11.0",
     "happy-dom": "^20.8.9",
     "nuxt": "^4.0.0",
+    "playwright-core": "^1.63.0",
     "typescript": "^5.7.0",
     "vitest": "^4.0.0",
     "vue-tsc": "^3.3.11"
