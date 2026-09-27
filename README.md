@@ -106,7 +106,7 @@ YM_ID=12345678
 
 ## How it works
 
-- **Production**: loads `tag.js` in the background without blocking hydration and initializes the counter. Calls made before the script loads are queued and sent once it loads. If `tag.js` is already on the page, it is not inserted again.
+- **Production**: loads `tag.js` in the background without blocking hydration and initializes the counter. Calls made before the script loads are queued and sent once it loads. If `tag.js` is already on the page (from `mc.yandex.ru` or the jsDelivr mirror, including the official snippet's `tag.js?id=…`), it is not inserted again.
 - **Development**: uses the mock API; with `debug: true` it logs every call to the console
 - **SSR**: `useYandexMetrika()` returns a noop API on the server, the real or mock API on the client
 - **Script failure**: falls back to the mock API with `console.error`
