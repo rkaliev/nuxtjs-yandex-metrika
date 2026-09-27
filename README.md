@@ -10,6 +10,7 @@ Nuxt 4 module for [Yandex Metrika](https://metrika.yandex.ru/).
 - Mock API in development mode with debug logging
 - Graceful fallback on script load failure
 - `<noscript>` pixel support
+- Waiting for cookie consent (`requireConsent`): nothing is loaded or sent before `grantConsent()`
 
 ## Installation
 
@@ -39,6 +40,7 @@ export default defineNuxtConfig({
 | `useCDN` | `boolean` | `false` | Use CDN for tag.js |
 | `noJS` | `boolean` | `true` | Inject `<noscript>` pixel |
 | `autoTracking` | `boolean` | `true` | Auto-track page navigations |
+| `requireConsent` | `boolean` | `false` | Start the counter only after `grantConsent()` (see [Cookie consent](#cookie-consent)) |
 | `clickmap` | `boolean` | `true` | Enable click map |
 | `trackLinks` | `boolean` | `true` | Track outbound links |
 | `accurateTrackBounce` | `boolean \| number` | `true` | Accurate bounce tracking (a number sets the bounce threshold in ms) |
@@ -85,6 +87,7 @@ function onBuy() {
 | `extLink(url, options?)` | Track external link |
 | `file(url, options?)` | Track file download |
 | `replacePhones()` | Replace phone numbers |
+| `grantConsent()` | Start the counter when `requireConsent` is set (does nothing otherwise) |
 
 ### `$yandexMetrika`
 
@@ -141,6 +144,38 @@ Known limitations:
 - When an async page throws a fatal error after setting its title, the hit carries that page's title instead of the error page's.
 - When an async page's setup throws a non-fatal error, that page and its query changes are not tracked until the next page renders.
 - An error page hit waits up to 300 ms for the error page's head. If the error page loads its content lazily and that takes longer (Nuxt's default error page on a slow first load), the hit carries the previous page's title.
+
+### Cookie consent
+
+For sites that need consent to cookies before analytics runs (for example, under 152-FZ), set `requireConsent: true`:
+
+```ts
+export default defineNuxtConfig({
+  yandexMetrika: {
+    id: '12345678',
+    requireConsent: true,
+  },
+})
+```
+
+Until `grantConsent()` is called, `tag.js` is not loaded, the counter is not initialized, and nothing is sent. Calls made before consent (`reachGoal()`, `hit()`, auto-tracking page views) are dropped, not queued; with `debug: true` each one logs `dropped, waiting for consent: <method>`. The `<noscript>` pixel is not added, because it would set cookies for visitors without JavaScript, where consent can't stop it.
+
+Call `grantConsent()` when the visitor accepts:
+
+```vue
+<script setup>
+const ym = useYandexMetrika()
+
+function accept() {
+  saveConsent() // your banner stores the choice
+  ym.grantConsent()
+}
+</script>
+```
+
+After consent the counter starts and sends a hit for the current page, without a referer: pages viewed before consent are never sent, not even as a referer. Later navigations are tracked as usual. A second `grantConsent()` does nothing.
+
+The module does not remember consent. Your app stores it (a cookie or `localStorage`) and calls `grantConsent()` on every page load once the visitor has agreed, for example in a client plugin. Withdrawing consent takes a page reload without `grantConsent()`: a loaded `tag.js` can't be unloaded.
 
 ## Migration from v1 (to v2)
 
