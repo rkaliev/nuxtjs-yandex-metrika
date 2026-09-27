@@ -29,7 +29,8 @@ describe('e2e tracking with sendTitle false', async () => {
 
     await navigateToAbout(page)
 
-    await expect.poll(() => hitCalls(page)).toEqual([
+    // toStrictEqual: a `title: undefined` key would still reach Metrika
+    await expect.poll(() => hitCalls(page)).toStrictEqual([
       ['99999999', 'hit', '/', {}],
       ['99999999', 'hit', '/about', { referer: '/' }],
     ])
