@@ -1,11 +1,14 @@
 import { defineNuxtPlugin, injectHead, useRuntimeConfig, useRouter } from '#imports'
+import type { Plugin } from '#app'
+import type { YandexMetrikaApi } from './types'
 import { isCounterEnabled, selectApi } from './utils/select-api'
 import { setupAutoTracking } from './utils/auto-tracking'
 
 // Safety net in case a pending head render never happens
 const HEAD_RENDER_TIMEOUT_MS = 1000
 
-export default defineNuxtPlugin((nuxtApp) => {
+// Annotated: the inferred type names a Nuxt-internal path, and the generated declaration must type $yandexMetrika
+const plugin: Plugin<{ yandexMetrika: YandexMetrikaApi }> = defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig().public.yandexMetrika
   const api = selectApi(config, import.meta.dev)
 
@@ -83,3 +86,5 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   return { provide: { yandexMetrika: api } }
 })
+
+export default plugin
