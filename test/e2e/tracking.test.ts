@@ -25,8 +25,9 @@ describe('e2e tracking', async () => {
 
   // Characterizes current behavior: the entry page is not tracked (fixed in part 3)
   it('should not log a hit for the entry page', async () => {
-    const { page, logsWith } = await openPage('/')
+    const { page, logsWith, settled } = await openPage('/')
 
+    await settled()
     expect(logsWith(HIT_LOG)).toEqual([])
 
     await page.close()

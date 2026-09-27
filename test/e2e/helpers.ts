@@ -10,6 +10,8 @@ export interface TrackedPage {
   consoleArgs: unknown[][]
   /** Arguments of console messages whose first argument is `prefix` */
   logsWith(prefix: string): unknown[][]
+  /** Resolves once every console message received so far has its arguments; await before negative checks */
+  settled(): Promise<void>
 }
 
 /**
@@ -19,13 +21,12 @@ export interface TrackedPage {
 export async function openPage(path: string, beforeGoto?: (page: Page) => Promise<unknown>): Promise<TrackedPage> {
   const page = await createPage()
   const consoleArgs: unknown[][] = []
+  const pending: Promise<unknown>[] = []
 
-  page.on('console', async (msg) => {
+  page.on('console', (msg) => {
     const entry: unknown[] = []
     consoleArgs.push(entry)
-    for (const arg of msg.args()) {
-      entry.push(await arg.jsonValue())
-    }
+    pending.push(Promise.all(msg.args().map(arg => arg.jsonValue())).then(values => entry.push(...values)))
   })
 
   await beforeGoto?.(page)
@@ -35,6 +36,9 @@ export async function openPage(path: string, beforeGoto?: (page: Page) => Promis
     page,
     consoleArgs,
     logsWith: prefix => consoleArgs.filter(args => args[0] === prefix),
+    settled: async () => {
+      await Promise.all(pending)
+    },
   }
 }
 
