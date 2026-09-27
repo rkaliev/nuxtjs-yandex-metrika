@@ -13,6 +13,8 @@ export interface PageLifecycle {
   /** Registers `callback` for the moment a navigation has rendered its page */
   onPageReady(callback: () => Promise<void>): unknown
   getTitle(): Promise<string>
+  /** True for a route rendered only to hydrate a prerendered payload before the real URL replaces it */
+  isHydrationPlaceholder(fullPath: string): boolean
 }
 
 /**
@@ -25,11 +27,12 @@ export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle,
 
   // Compared with the last URL, not `from`: the initial navigation replaces a route with itself
   router.afterEach((to, _from, failure) => {
-    if (failure) return
+    if (failure || page.isHydrationPlaceholder(to.fullPath)) return
     // href includes the router base (app.baseURL); fullPath does not
     const url = router.resolve(to.fullPath).href
-    if (url === (pending ?? lastSent)) return
-    pending = url
+    if (url === pending) return
+    // Back on the last sent page before the pending one rendered: nothing new to send
+    pending = url === lastSent ? undefined : url
   })
 
   page.onPageReady(async () => {

@@ -6,7 +6,10 @@ import { createNoopApi } from '../../src/runtime/utils/mock'
 type Guard = Parameters<NavigationRouter['afterEach']>[0]
 type ReadyCallback = Parameters<PageLifecycle['onPageReady']>[0]
 
-function setup(resolve: NavigationRouter['resolve'] = fullPath => ({ href: fullPath })) {
+function setup(
+  resolve: NavigationRouter['resolve'] = fullPath => ({ href: fullPath }),
+  isHydrationPlaceholder: PageLifecycle['isHydrationPlaceholder'] = () => false,
+) {
   const guards: Guard[] = []
   const readyCallbacks: ReadyCallback[] = []
   const router: NavigationRouter = { afterEach: guard => guards.push(guard), resolve }
@@ -14,6 +17,7 @@ function setup(resolve: NavigationRouter['resolve'] = fullPath => ({ href: fullP
   const page: PageLifecycle = {
     onPageReady: callback => readyCallbacks.push(callback),
     getTitle: async () => state.title,
+    isHydrationPlaceholder,
   }
   const api = createNoopApi()
   const hit = vi.spyOn(api, 'hit')
@@ -110,5 +114,29 @@ describe('setupAutoTracking', () => {
 
     expect(hit).toHaveBeenCalledTimes(2)
     expect(hit).toHaveBeenLastCalledWith('/b', { referer: '/', title: 'Home' })
+  })
+
+  it('should not track the route a prerendered page hydrates before its real url', async () => {
+    const { hit, navigate, ready } = setup(undefined, fullPath => fullPath === '/')
+
+    // Nuxt flushes the placeholder's page before replacing it with the real url
+    navigate('/', '/')
+    await ready()
+    navigate('/?utm_source=test', '/')
+    await ready()
+
+    expect(hit).toHaveBeenCalledOnce()
+    expect(hit).toHaveBeenCalledWith('/?utm_source=test', { title: 'Home' })
+  })
+
+  it('should not send a hit when returning to the last sent page before the next page is ready', async () => {
+    const { hit, navigate, ready, enter } = setup()
+
+    await enter()
+    navigate('/a', '/')
+    navigate('/', '/a')
+    await ready()
+
+    expect(hit).toHaveBeenCalledOnce()
   })
 })

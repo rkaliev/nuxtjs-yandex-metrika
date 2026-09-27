@@ -1,35 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import { fileURLToPath } from 'node:url'
 import { setup } from '@nuxt/test-utils/e2e'
-import { HIT_LOG, navigateToAbout, openPage } from './helpers'
+import { HIT_LOG, SCRIPT_GLOB, hitCalls, navigateToAbout, openPage, openWithStubbedScript, ymCalls } from './helpers'
 import type { TrackedPage } from './helpers'
 
 type Page = TrackedPage['page']
 type Route = Parameters<Parameters<Page['route']>[1]>[0]
 
-const SCRIPT_GLOB = '**/metrika/tag.js'
-
-/**
- * Serves an empty tag.js: the plugin's `ym` stub stays in place,
- * so every counter call is kept in its queue `window.ym.a`.
- */
-async function openWithStubbedScript(path: string, requested: string[] = []): Promise<TrackedPage> {
-  return openPage(path, page => page.route(SCRIPT_GLOB, (route) => {
-    requested.push(route.request().url())
-    return route.fulfill({ contentType: 'text/javascript', body: '' })
-  }))
-}
-
 async function openWithFailingScript(path: string): Promise<TrackedPage> {
   return openPage(path, page => page.route(SCRIPT_GLOB, route => route.abort()))
-}
-
-function ymCalls(page: Page): Promise<unknown[][]> {
-  return page.evaluate(() => window.ym.a as unknown[][])
-}
-
-async function hitCalls(page: Page): Promise<unknown[][]> {
-  return (await ymCalls(page)).filter(call => call[1] === 'hit')
 }
 
 describe('e2e tracking in production', async () => {

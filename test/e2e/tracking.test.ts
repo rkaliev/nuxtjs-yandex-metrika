@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { fileURLToPath } from 'node:url'
 import { setup, $fetch } from '@nuxt/test-utils/e2e'
-import { HIT_LOG, navigateToAbout, openPage } from './helpers'
+import { HIT_LOG, navigateToAbout, openPage, pushRoutes } from './helpers'
 
 describe('e2e tracking', async () => {
   await setup({
@@ -73,6 +73,34 @@ describe('e2e tracking', async () => {
       [HIT_LOG, '/about', { title: 'About' }],
       [HIT_LOG, '/about?tab=info', { referer: '/about', title: 'About' }],
     ])
+
+    await page.close()
+  })
+
+  it('should log the new page title when a navigation fails while the page is loading', async () => {
+    const { page, logsWith } = await openPage('/')
+    await expect.poll(() => logsWith(HIT_LOG)).toHaveLength(1)
+
+    // The second push is a duplicate: it fails while the async /about page is still loading
+    await pushRoutes(page, ['/about', '/about'])
+
+    await expect.poll(() => logsWith(HIT_LOG)).toEqual([
+      [HIT_LOG, '/', { title: 'Home' }],
+      [HIT_LOG, '/about', { referer: '/', title: 'About' }],
+    ])
+
+    await page.close()
+  })
+
+  it('should log a hit with the error page title on client-side navigation to a missing page', async () => {
+    const { page, logsWith } = await openPage('/')
+    await expect.poll(() => logsWith(HIT_LOG)).toHaveLength(1)
+
+    await pushRoutes(page, ['/missing'])
+
+    await expect.poll(() => logsWith(HIT_LOG)).toHaveLength(2)
+    expect(logsWith(HIT_LOG)[1]).toEqual([HIT_LOG, '/missing', { referer: '/', title: await page.title() }])
+    expect(await page.title()).toContain('404')
 
     await page.close()
   })
