@@ -50,9 +50,14 @@ describe('selectApi', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 
-  it('should warn when the id is missing', async () => {
-    await selectApi(config({ id: '' }), false)
+  it('should warn about a missing id in dev', async () => {
+    await selectApi(config({ id: '' }), true)
     expect(warn).toHaveBeenCalledWith('[nuxt-yandex-metrika] Counter ID is not set. Using mock API.')
+  })
+
+  it('should not warn about a missing id in production', async () => {
+    await selectApi(config({ id: '' }), false)
+    expect(warn).not.toHaveBeenCalledWith('[nuxt-yandex-metrika] Counter ID is not set. Using mock API.')
   })
 
   it('should return the mock api in dev without loading the script', async () => {

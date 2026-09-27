@@ -11,7 +11,8 @@ export function isCounterEnabled(config: ModuleOptions): boolean {
 export async function selectApi(config: Required<ModuleOptions>, dev: boolean): Promise<YandexMetrikaApi> {
   // Mode 1: disabled or no ID → mock
   if (!isCounterEnabled(config)) {
-    if (!config.id) {
+    // Production builds already warned at build time
+    if (!config.id && dev) {
       console.warn('[nuxt-yandex-metrika] Counter ID is not set. Using mock API.')
     }
     return createMockApi(config.debug)

@@ -1,4 +1,4 @@
-import { defineNuxtModule, addPlugin, addImports, createResolver } from '@nuxt/kit'
+import { defineNuxtModule, addPlugin, addImports, createResolver, useLogger } from '@nuxt/kit'
 import { defu } from 'defu'
 import type { ModuleOptions } from './runtime/types'
 import { DEFAULT_OPTIONS, NOSCRIPT_PIXEL_URL } from './runtime/utils/constants'
@@ -26,6 +26,11 @@ export default defineNuxtModule<ModuleOptions>({
       options,
       DEFAULT_OPTIONS,
     ) as Required<ModuleOptions>
+
+    if (!resolvedOptions.id && !resolvedOptions.disabled) {
+      // Created in setup so it follows the logLevel Nuxt applies
+      useLogger('nuxt-yandex-metrika').warn('Counter ID is not set. Set yandexMetrika.id or NUXT_PUBLIC_YANDEX_METRIKA_ID (it can also be set at runtime); until then the mock API is used.')
+    }
 
     // Merge into runtimeConfig.public
     nuxt.options.runtimeConfig.public.yandexMetrika = defu(
