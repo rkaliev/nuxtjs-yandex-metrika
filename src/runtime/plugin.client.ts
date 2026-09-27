@@ -3,12 +3,15 @@ import type { Plugin } from '#app'
 import type { YandexMetrikaApi } from './types'
 import { isCounterEnabled, selectApi } from './utils/select-api'
 import { setupAutoTracking } from './utils/auto-tracking'
+import type { AutoTracking } from './utils/auto-tracking'
 import { createHeadRender } from './utils/head-render'
 
 // Annotated: the inferred type names a Nuxt-internal path, and the generated declaration must type $yandexMetrika
 const plugin: Plugin<{ yandexMetrika: YandexMetrikaApi }> = defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig().public.yandexMetrika
-  const api = selectApi(config, import.meta.dev)
+  // Set below when auto-tracking is on; consent can only be granted after the plugin has run
+  let tracking: AutoTracking | undefined
+  const api = selectApi(config, import.meta.dev, () => tracking?.onConsentGranted())
 
   if (config.autoTracking && isCounterEnabled(config)) {
     const { nextHeadRender, headRendered } = createHeadRender(injectHead())
@@ -18,7 +21,7 @@ const plugin: Plugin<{ yandexMetrika: YandexMetrikaApi }> = defineNuxtPlugin((nu
     const payloadPath = nuxtApp.payload.prerenderedAt ? nuxtApp.payload.path : undefined
     const initialFullPath = router.currentRoute.value.fullPath
 
-    setupAutoTracking(router, {
+    tracking = setupAutoTracking(router, {
       onPageReady: (callback) => {
         // Never returned to Nuxt: its hooks await their handlers, and hydration would wait for the hit
         const flush = () => {

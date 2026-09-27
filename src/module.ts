@@ -44,8 +44,8 @@ export default defineNuxtModule<ModuleOptions>({
       resolvedOptions,
     ) as Required<ModuleOptions>
 
-    // noJS: inject noscript pixel
-    if (resolvedOptions.noJS && resolvedOptions.id && !resolvedOptions.disabled) {
+    // noJS: inject noscript pixel. Not with requireConsent: it sets cookies without JS, where consent can't stop it
+    if (resolvedOptions.noJS && resolvedOptions.id && !resolvedOptions.disabled && !resolvedOptions.requireConsent) {
       const noscript = nuxt.options.app.head.noscript = nuxt.options.app.head.noscript || []
       ;(noscript as Array<Record<string, string>>).push({
         innerHTML: `<div><img src="${NOSCRIPT_PIXEL_URL}/${resolvedOptions.id}" style="position:absolute;left:-9999px;" alt=""/></div>`,

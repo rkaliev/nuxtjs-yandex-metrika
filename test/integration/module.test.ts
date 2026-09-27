@@ -125,6 +125,18 @@ describe('module registration', () => {
     }
   })
 
+  it('should not inject the noscript pixel when requireConsent is set', async () => {
+    const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { id: '99999999', noJS: true, requireConsent: true } } })
+
+    try {
+      const noscript = nuxt.options.app.head.noscript as Array<{ innerHTML: string }> | undefined
+      expect(noscript?.find(n => n.innerHTML?.includes('mc.yandex.ru/watch'))).toBeFalsy()
+    }
+    finally {
+      await nuxt.close()
+    }
+  })
+
   it('does not inject noscript pixel when disabled', async () => {
     const nuxt = await loadNuxt({
       cwd: rootDir,
