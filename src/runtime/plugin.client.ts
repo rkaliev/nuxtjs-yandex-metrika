@@ -1,21 +1,15 @@
 import { defineNuxtPlugin, useRuntimeConfig, useRouter } from '#imports'
 import { isCounterEnabled, selectApi } from './utils/select-api'
+import { setupAutoTracking } from './utils/auto-tracking'
 
 export default defineNuxtPlugin(async () => {
   const config = useRuntimeConfig().public.yandexMetrika
+  // Before await: the Nuxt context is lost after it
   const router = useRouter()
   const api = await selectApi(config, import.meta.dev)
 
-  // Auto-tracking: track page navigations
   if (config.autoTracking && isCounterEnabled(config)) {
-    let isInitialNavigation = true
-    router.afterEach((to: { fullPath: string }, from: { fullPath: string }) => {
-      if (isInitialNavigation) {
-        isInitialNavigation = false
-        return
-      }
-      api.hit(to.fullPath, { referer: from.fullPath })
-    })
+    setupAutoTracking(router, api)
   }
 
   return { provide: { yandexMetrika: api } }
