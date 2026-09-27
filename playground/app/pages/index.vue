@@ -81,6 +81,8 @@ v-for="(entry, i) in logs"
 </template>
 
 <script setup lang="ts">
+useHead({ title: 'Home' })
+
 const ym = useYandexMetrika()
 const logs = ref<string[]>([])
 

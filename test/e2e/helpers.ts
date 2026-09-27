@@ -46,3 +46,34 @@ export async function navigateToAbout(page: Page): Promise<void> {
   await page.click('a[href="/about"]')
   await page.waitForURL('**/about')
 }
+
+export const SCRIPT_GLOB = '**/metrika/tag.js'
+
+/**
+ * Serves an empty tag.js: the plugin's `ym` stub stays in place,
+ * so every counter call is kept in its queue `window.ym.a`.
+ */
+export async function openWithStubbedScript(path: string, requested: string[] = []): Promise<TrackedPage> {
+  return openPage(path, page => page.route(SCRIPT_GLOB, (route) => {
+    requested.push(route.request().url())
+    return route.fulfill({ contentType: 'text/javascript', body: '' })
+  }))
+}
+
+export function ymCalls(page: Page): Promise<unknown[][]> {
+  return page.evaluate(() => window.ym.a as unknown[][])
+}
+
+export async function hitCalls(page: Page): Promise<unknown[][]> {
+  return (await ymCalls(page)).filter(call => call[1] === 'hit')
+}
+
+/** Runs `router.push` for each path in order, awaiting each, inside the page */
+export async function pushRoutes(page: Page, paths: string[]): Promise<void> {
+  await page.evaluate(async (paths) => {
+    const app = (document.querySelector('#__nuxt') as unknown as { __vue_app__: { config: { globalProperties: { $router: { push(path: string): Promise<unknown> } } } } }).__vue_app__
+    for (const path of paths) {
+      await app.config.globalProperties.$router.push(path)
+    }
+  }, paths)
+}

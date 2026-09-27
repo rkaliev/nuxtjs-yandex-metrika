@@ -8,12 +8,21 @@
       Navigate back to <NuxtLink to="/">Home</NuxtLink> and check the browser console —
       you should see <code>hit()</code> calls logged by the mock API on each page transition.
     </p>
+    <p class="hint">
+      <NuxtLink to="/about?tab=info">
+        About with query
+      </NuxtLink> changes only the query: the same page, still a new hit.
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
 // Called during SSR too: the composable must return the noop API on the server
 useYandexMetrika().params({ page: 'about' })
+
+// An async page: its title exists only after setup resolves, which the hit's title must wait for
+await new Promise(resolve => setTimeout(resolve, 100))
+useHead({ title: 'About' })
 </script>
 
 <style scoped>

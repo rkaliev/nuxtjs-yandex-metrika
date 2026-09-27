@@ -106,6 +106,25 @@ describe('loadScript', () => {
     await promise
   })
 
+  it('should not insert the script again when it is already on the page', async () => {
+    const onPage = originalCreateElement('script') as HTMLScriptElement
+    // A non-JS type keeps happy-dom from fetching the URL
+    onPage.type = 'text/plain'
+    onPage.setAttribute('src', 'https://mc.yandex.ru/metrika/tag.js')
+    document.head.appendChild(onPage)
+
+    try {
+      const promise = loadScript('https://mc.yandex.ru/metrika/tag.js')
+
+      expect(document.createElement).not.toHaveBeenCalledWith('script')
+      expect(insertBeforeSpy).not.toHaveBeenCalled()
+      await promise
+    }
+    finally {
+      onPage.remove()
+    }
+  })
+
   it('should append the script to head when the page has no scripts', async () => {
     vi.mocked(document.getElementsByTagName).mockReturnValue([] as unknown as HTMLCollectionOf<Element>)
     const appendSpy = vi.spyOn(document.head, 'appendChild').mockImplementation(node => node)

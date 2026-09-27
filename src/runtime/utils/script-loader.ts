@@ -14,6 +14,12 @@ export function loadScript(url: string): Promise<void> {
       window.ym.l = Date.now()
     }
 
+    // Already on the page (e.g. a second plugin run or the official snippet): don't load it twice
+    if (document.querySelector(`script[src="${url}"]`)) {
+      resolve()
+      return
+    }
+
     const script = document.createElement('script')
     script.async = true
     script.src = url

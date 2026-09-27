@@ -18,7 +18,12 @@ describe('selectApi', () => {
   function expectMockApi(api: YandexMetrikaApi) {
     api.hit('/x')
     expect(log).toHaveBeenCalledWith('[nuxt-yandex-metrika] hit:', '/x', undefined)
-    expect(window.ym).not.toHaveBeenCalled()
+    expect(window.ym).not.toHaveBeenCalledWith(expect.anything(), 'hit', expect.anything(), expect.anything())
+  }
+
+  async function failScriptLoad() {
+    fakeScript.onerror!()
+    await vi.waitFor(() => expect(error).toHaveBeenCalled())
   }
 
   beforeEach(() => {
@@ -41,54 +46,53 @@ describe('selectApi', () => {
     vi.restoreAllMocks()
   })
 
-  it('should return the mock api when disabled', async () => {
-    expectMockApi(await selectApi(config({ disabled: true }), false))
+  it('should return the mock api when disabled', () => {
+    expectMockApi(selectApi(config({ disabled: true }), false))
   })
 
-  it('should not warn when disabled with an id', async () => {
-    await selectApi(config({ disabled: true }), false)
+  it('should not warn when disabled with an id', () => {
+    selectApi(config({ disabled: true }), false)
     expect(warn).not.toHaveBeenCalled()
   })
 
-  it('should warn when the id is missing', async () => {
-    await selectApi(config({ id: '' }), false)
+  it('should warn about a missing id in dev', () => {
+    selectApi(config({ id: '' }), true)
     expect(warn).toHaveBeenCalledWith('[nuxt-yandex-metrika] Counter ID is not set. Using mock API.')
   })
 
-  it('should return the mock api in dev without loading the script', async () => {
-    const api = await selectApi(config(), true)
+  it('should not warn about a missing id in production', () => {
+    selectApi(config({ id: '' }), false)
+    expect(warn).not.toHaveBeenCalledWith('[nuxt-yandex-metrika] Counter ID is not set. Using mock API.')
+  })
+
+  it('should return the mock api in dev without loading the script', () => {
+    const api = selectApi(config(), true)
     expect(document.createElement).not.toHaveBeenCalledWith('script')
     expectMockApi(api)
   })
 
-  it('should warn about dev mode', async () => {
-    await selectApi(config(), true)
+  it('should warn about dev mode', () => {
+    selectApi(config(), true)
     expect(warn).toHaveBeenCalledWith('[nuxt-yandex-metrika] Development mode: using mock API.')
   })
 
-  it('should warn about debug in dev mode when debug is set', async () => {
-    await selectApi(config(), true)
+  it('should warn about debug in dev mode when debug is set', () => {
+    selectApi(config(), true)
     expect(warn).toHaveBeenCalledWith('[nuxt-yandex-metrika] Debug is enabled: you\'ll see all API calls in the console.')
   })
 
-  it('should load the default script in production', async () => {
-    const promise = selectApi(config(), false)
-    fakeScript.onload!()
-    await promise
+  it('should load the default script in production', () => {
+    selectApi(config(), false)
     expect(fakeScript.src).toBe(SCRIPT_URL)
   })
 
-  it('should load the CDN script when useCDN is set', async () => {
-    const promise = selectApi(config({ useCDN: true }), false)
-    fakeScript.onload!()
-    await promise
+  it('should load the CDN script when useCDN is set', () => {
+    selectApi(config({ useCDN: true }), false)
     expect(fakeScript.src).toBe(SCRIPT_URL_CDN)
   })
 
-  it('should init the counter after the script loads', async () => {
-    const promise = selectApi(config(), false)
-    fakeScript.onload!()
-    await promise
+  it('should init the counter before the script loads', () => {
+    selectApi(config(), false)
     expect(window.ym).toHaveBeenCalledWith('99999999', 'init', {
       accurateTrackBounce: true,
       clickmap: true,
@@ -101,10 +105,8 @@ describe('selectApi', () => {
     })
   })
 
-  it('should return the real api after the script loads', async () => {
-    const promise = selectApi(config(), false)
-    fakeScript.onload!()
-    const api = await promise
+  it('should return the real api before the script loads', () => {
+    const api = selectApi(config(), false)
 
     api.hit('/x')
 
@@ -112,19 +114,18 @@ describe('selectApi', () => {
   })
 
   it('should log an error when the script fails to load', async () => {
-    const promise = selectApi(config(), false)
+    selectApi(config(), false)
     fakeScript.onerror!()
-    await promise
-    expect(error).toHaveBeenCalledWith(
+    await vi.waitFor(() => expect(error).toHaveBeenCalledWith(
       '[nuxt-yandex-metrika] Failed to load Yandex Metrika script. Falling back to mock API.',
       expect.any(Error),
-    )
+    ))
   })
 
-  it('should return the mock api when the script fails to load', async () => {
-    const promise = selectApi(config(), false)
-    fakeScript.onerror!()
-    expectMockApi(await promise)
+  it('should switch to the mock api when the script fails to load', async () => {
+    const api = selectApi(config(), false)
+    await failScriptLoad()
+    expectMockApi(api)
   })
 })
 

@@ -1,34 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import { fileURLToPath } from 'node:url'
 import { setup } from '@nuxt/test-utils/e2e'
-import { HIT_LOG, navigateToAbout, openPage } from './helpers'
+import { HIT_LOG, SCRIPT_GLOB, hitCalls, navigateToAbout, openPage, openWithStubbedScript, ymCalls } from './helpers'
 import type { TrackedPage } from './helpers'
 
 type Page = TrackedPage['page']
-
-const SCRIPT_GLOB = '**/metrika/tag.js'
-
-/**
- * Serves an empty tag.js: the plugin's `ym` stub stays in place,
- * so every counter call is kept in its queue `window.ym.a`.
- */
-async function openWithStubbedScript(path: string, requested: string[] = []): Promise<TrackedPage> {
-  return openPage(path, page => page.route(SCRIPT_GLOB, (route) => {
-    requested.push(route.request().url())
-    return route.fulfill({ contentType: 'text/javascript', body: '' })
-  }))
-}
+type Route = Parameters<Parameters<Page['route']>[1]>[0]
 
 async function openWithFailingScript(path: string): Promise<TrackedPage> {
   return openPage(path, page => page.route(SCRIPT_GLOB, route => route.abort()))
-}
-
-function ymCalls(page: Page): Promise<unknown[][]> {
-  return page.evaluate(() => window.ym.a as unknown[][])
-}
-
-async function hitCalls(page: Page): Promise<unknown[][]> {
-  return (await ymCalls(page)).filter(call => call[1] === 'hit')
 }
 
 describe('e2e tracking in production', async () => {
@@ -70,11 +50,55 @@ describe('e2e tracking in production', async () => {
     await page.close()
   })
 
-  // Characterizes current behavior: the entry page is not tracked (fixed in part 3)
-  it('should not send a hit for the entry page', async () => {
+  it('should not wait for tag.js before hydration', async () => {
+    let held: Route | undefined
+    // tag.js never answers until the end of the test; openPage waits for hydration
+    const { page } = await openPage('/', page => page.route(SCRIPT_GLOB, (route) => {
+      held = route
+    }))
+
+    expect((await ymCalls(page))[0]?.[1]).toBe('init')
+
+    await held?.fulfill({ contentType: 'text/javascript', body: '' })
+    await page.close()
+  })
+
+  it('should finish hydration without waiting for the hit', async () => {
+    const { page } = await openPage('/', async (page) => {
+      await page.route(SCRIPT_GLOB, route => route.fulfill({ contentType: 'text/javascript', body: '' }))
+      // Records when Nuxt reports the end of hydration
+      await page.addInitScript(() => {
+        const w = window as unknown as { useNuxtApp?: () => { isHydrating?: boolean }, hydratedAt?: number }
+        const check = () => {
+          try {
+            if (w.useNuxtApp?.().isHydrating === false) {
+              w.hydratedAt = performance.now()
+              return
+            }
+          }
+          catch {
+            // The Nuxt app does not exist yet
+          }
+          requestAnimationFrame(check)
+        }
+        requestAnimationFrame(check)
+      })
+    })
+
+    const { hydratedAt, domContentLoaded } = await page.evaluate(() => ({
+      hydratedAt: (window as unknown as { hydratedAt: number }).hydratedAt,
+      domContentLoaded: (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming).domContentLoadedEventEnd,
+    }))
+    // Without the fix hydration ended only at the 1000 ms head render timeout
+    expect(hydratedAt - domContentLoaded).toBeLessThan(500)
+
+    await page.close()
+  })
+
+  it('should send a hit with the title for the entry page', async () => {
     const { page } = await openWithStubbedScript('/')
 
-    expect(await hitCalls(page)).toEqual([])
+    await expect.poll(() => hitCalls(page)).toEqual([['99999999', 'hit', '/', { title: 'Home' }]])
 
     await page.close()
   })
@@ -84,7 +108,10 @@ describe('e2e tracking in production', async () => {
 
     await navigateToAbout(page)
 
-    await expect.poll(() => hitCalls(page)).toEqual([['99999999', 'hit', '/about', { referer: '/' }]])
+    await expect.poll(() => hitCalls(page)).toEqual([
+      ['99999999', 'hit', '/', { title: 'Home' }],
+      ['99999999', 'hit', '/about', { referer: '/', title: 'About' }],
+    ])
 
     await page.close()
   })
@@ -100,11 +127,16 @@ describe('e2e tracking in production', async () => {
   })
 
   it('should use the mock api after a failed script load', async () => {
-    const { page, logsWith } = await openWithFailingScript('/')
+    const { page, consoleArgs, logsWith } = await openWithFailingScript('/')
+    // The load runs in the background: navigate only after the switch to the mock
+    await expect.poll(() => consoleArgs.some(args =>
+      String(args[0]).includes('Failed to load Yandex Metrika script. Falling back to mock API.'),
+    )).toBe(true)
 
     await navigateToAbout(page)
 
-    await expect.poll(() => logsWith(HIT_LOG)).toEqual([[HIT_LOG, '/about', { referer: '/' }]])
+    // The entry hit may land in the ym queue or the mock, depending on when the load failed
+    await expect.poll(() => logsWith(HIT_LOG)).toContainEqual([HIT_LOG, '/about', { referer: '/', title: 'About' }])
 
     await page.close()
   })
