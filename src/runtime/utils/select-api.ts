@@ -29,13 +29,15 @@ export function selectApi(config: Required<ModuleOptions>, dev: boolean): Yandex
   }
 
   // Mode 3: production → load the real script in the background, calls queue in the ym stub meanwhile
-  let target = createRealApi(config.id)
+  // A runtime env override reaches the config as a number (Nuxt parses it with destr)
+  const id = String(config.id)
+  let target = createRealApi(id)
   const url = config.useCDN ? SCRIPT_URL_CDN : SCRIPT_URL
   // loadScript installs the ym stub synchronously, so init below is queued first
   loadScript(url).catch((error) => {
     console.error('[nuxt-yandex-metrika] Failed to load Yandex Metrika script. Falling back to mock API.', error)
     target = createMockApi(config.debug)
   })
-  initCounter(config.id, config)
+  initCounter(id, config)
   return createApi((method, args) => (target[method] as (...args: unknown[]) => void)(...args))
 }

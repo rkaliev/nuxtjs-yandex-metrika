@@ -105,6 +105,16 @@ describe('selectApi', () => {
     })
   })
 
+  it('should pass a numeric id to ym as a string', () => {
+    // A runtime NUXT_PUBLIC_YANDEX_METRIKA_ID=99999999 reaches the config as a number
+    const api = selectApi(config({ id: 99999999 as unknown as string }), false)
+
+    api.hit('/x')
+
+    expect(window.ym).toHaveBeenCalledWith('99999999', 'init', expect.anything())
+    expect(window.ym).toHaveBeenCalledWith('99999999', 'hit', '/x', undefined)
+  })
+
   it('should return the real api before the script loads', () => {
     const api = selectApi(config(), false)
 

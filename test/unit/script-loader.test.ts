@@ -125,6 +125,46 @@ describe('loadScript', () => {
     }
   })
 
+  it.each([
+    ['the official snippet loaded it with the counter id', 'https://mc.yandex.ru/metrika/tag.js?id=123'],
+    ['it was loaded from the CDN mirror', 'https://cdn.jsdelivr.net/npm/yandex-metrica-watch/tag.js'],
+  ])('should not insert the script when %s', async (_, src) => {
+    const onPage = originalCreateElement('script') as HTMLScriptElement
+    // A non-JS type keeps happy-dom from fetching the URL
+    onPage.type = 'text/plain'
+    onPage.setAttribute('src', src)
+    document.head.appendChild(onPage)
+
+    try {
+      const promise = loadScript('https://mc.yandex.ru/metrika/tag.js')
+
+      expect(insertBeforeSpy).not.toHaveBeenCalled()
+      await promise
+    }
+    finally {
+      onPage.remove()
+    }
+  })
+
+  it('should insert the script when the page only has a script whose URL merely starts like tag.js', async () => {
+    const onPage = originalCreateElement('script') as HTMLScriptElement
+    onPage.type = 'text/plain'
+    onPage.setAttribute('src', 'https://mc.yandex.ru/metrika/tag.jsx')
+    document.head.appendChild(onPage)
+
+    try {
+      const promise = loadScript('https://mc.yandex.ru/metrika/tag.js')
+
+      expect(insertBeforeSpy).toHaveBeenCalledWith(fakeScript, existingScript)
+
+      ;(fakeScript.onload as (ev: Event) => void)(new Event('load'))
+      await promise
+    }
+    finally {
+      onPage.remove()
+    }
+  })
+
   it('should append the script to head when the page has no scripts', async () => {
     vi.mocked(document.getElementsByTagName).mockReturnValue([] as unknown as HTMLCollectionOf<Element>)
     const appendSpy = vi.spyOn(document.head, 'appendChild').mockImplementation(node => node)

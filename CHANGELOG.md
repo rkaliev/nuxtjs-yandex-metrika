@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.1.1] - 2026-09-27
+
+### Fixed
+
+- `tag.js` is not loaded a second time when the page already has the official Metrika snippet (it loads `tag.js?id=<counter>`) or the script from the other source (`mc.yandex.ru` or the jsDelivr mirror)
+- A numeric counter id (a runtime `NUXT_PUBLIC_YANDEX_METRIKA_ID` override, which Nuxt parses as a number, or `id: 12345` in a JS config) is passed to Metrika and stored in `runtimeConfig` as a string
+
+### Changed
+
+- Internal: the plugin's head render waiting moved to its own module with unit tests; tracking behavior is unchanged
+
 ## [3.1.0] - 2026-09-27
 
 Statistics change after upgrading: the entry page is counted (page views go up, most visibly for single-page sessions), failed navigations and navigations to the same URL are no longer counted, and hits carry the title of their page. See [Upgrading to 3.1](./README.md#upgrading-to-31).

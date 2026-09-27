@@ -17,11 +17,11 @@ export default defineNuxtModule<ModuleOptions>({
   setup(options, nuxt) {
     const resolver = createResolver(import.meta.url)
 
-    // Resolve counter ID from options or env
-    const id = options.id
+    // Resolve counter ID from options or env; a JS config may set it as a number
+    const id = String(options.id
       || process.env.NUXT_PUBLIC_YANDEX_METRIKA_ID
       || process.env.YM_ID
-      || ''
+      || '')
 
     const resolvedOptions: Required<ModuleOptions> = defu(
       { id },

@@ -1,3 +1,10 @@
+import { SCRIPT_URL, SCRIPT_URL_CDN } from './constants'
+
+// Either source defines ym; the official snippet adds `?id=<counter>` to the URL
+const LOADED_SCRIPT_SELECTOR = [SCRIPT_URL, SCRIPT_URL_CDN]
+  .flatMap(url => [`script[src="${url}"]`, `script[src^="${url}?"]`])
+  .join(', ')
+
 export function loadScript(url: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // Create ym stub that queues calls
@@ -9,7 +16,7 @@ export function loadScript(url: string): Promise<void> {
     }
 
     // Already on the page (e.g. a second plugin run or the official snippet): don't load it twice
-    if (document.querySelector(`script[src="${url}"]`)) {
+    if (document.querySelector(LOADED_SCRIPT_SELECTOR)) {
       resolve()
       return
     }
