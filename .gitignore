@@ -9,3 +9,9 @@ coverage
 dist
 .output
 .npmrc
+
+# Local agent files (kept out of the repo)
+CLAUDE.md
+.claude/
+docs/specs/
+docs/plans/

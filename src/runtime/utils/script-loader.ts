@@ -1,6 +1,6 @@
 declare global {
   interface Window {
-    ym: ((...args: unknown[]) => void) & { a?: unknown[]; l?: number }
+    ym: ((...args: unknown[]) => void) & { a?: unknown[], l?: number }
   }
 }
 
@@ -22,7 +22,11 @@ export function loadScript(url: string): Promise<void> {
     script.onerror = () => reject(new Error(`[nuxt-yandex-metrika] Failed to load script: ${url}`))
 
     const firstScript = document.getElementsByTagName('script')[0]
-    firstScript?.parentNode?.insertBefore(script, firstScript)
-      ?? document.head.appendChild(script)
+    if (firstScript?.parentNode) {
+      firstScript.parentNode.insertBefore(script, firstScript)
+    }
+    else {
+      document.head.appendChild(script)
+    }
   })
 }

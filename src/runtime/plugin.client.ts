@@ -23,17 +23,19 @@ export default defineNuxtPlugin(async () => {
   if (import.meta.dev) {
     console.warn('[nuxt-yandex-metrika] Development mode: using mock API.')
     if (config.debug) {
-      console.warn("[nuxt-yandex-metrika] Debug is enabled: you'll see all API calls in the console.")
+      console.warn('[nuxt-yandex-metrika] Debug is enabled: you\'ll see all API calls in the console.')
     }
     api = createMockApi(config.debug)
-  } else {
+  }
+  else {
     // Mode 3: production → load real script
     try {
       const url = config.useCDN ? SCRIPT_URL_CDN : SCRIPT_URL
       await loadScript(url)
       window.ym(config.id, 'init', buildInitOptions(config))
       api = createRealApi(config.id)
-    } catch (error) {
+    }
+    catch (error) {
       console.error('[nuxt-yandex-metrika] Failed to load Yandex Metrika script. Falling back to mock API.', error)
       api = createMockApi(config.debug)
     }

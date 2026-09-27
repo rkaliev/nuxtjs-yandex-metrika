@@ -1,32 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "types": [
-      "node",
-      "vitest/globals"
-    ]
-  },
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    ".nuxt",
-    "playground",
-    "src/runtime"
-  ]
+  "extends": "./.nuxt/tsconfig.json",
+  "exclude": ["dist", "node_modules", "playground"]
 }

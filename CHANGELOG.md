@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- `engines.node` aligned with Nuxt 4.5: `^22.19.0 || ^24.11.0 || >=26.0.0` (Node 20 reached end-of-life on 2026-04-30)
+
+### Fixed
+
+- Published runtime type declarations (`dist/runtime/**/*.d.ts`) were empty: module options and `useYandexMetrika()` are now typed for consumers
+
 ## [3.0.0] - 2026-04-08
 
 ### Breaking

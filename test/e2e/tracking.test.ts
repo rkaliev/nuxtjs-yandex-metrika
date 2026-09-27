@@ -6,8 +6,9 @@ describe('e2e tracking', async () => {
   await setup({
     rootDir: fileURLToPath(new URL('../../playground', import.meta.url)),
     browser: true,
+    // Dev mode: the plugin uses the mock API, whose debug logs the browser test asserts on
+    dev: true,
     nuxtConfig: {
-      // @ts-expect-error -- module option, typed via Nuxt augmentation
       yandexMetrika: {
         id: '99999999',
         debug: true,

@@ -18,12 +18,16 @@
     "dist"
   ],
   "scripts": {
-    "prepack": "nuxt-module-build build",
+    "prepack": "nuxt-module-build prepare && nuxt-module-build build",
     "build": "nuxt-module-build build",
     "dev": "nuxi dev playground",
     "dev:build": "nuxi build playground",
     "test": "vitest run",
-    "test:watch": "vitest watch"
+    "test:watch": "vitest watch",
+    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
+    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit",
+    "lint": "eslint .",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "author": "Ruslan Aliev",
   "contributors": [
@@ -52,7 +56,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": "^22.19.0 || ^24.11.0 || >=26.0.0"
   },
   "peerDependencies": {
     "nuxt": "^4.0.0"
@@ -62,12 +66,16 @@
     "defu": "^6.1.4"
   },
   "devDependencies": {
+    "@nuxt/eslint-config": "^1.17.0",
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/test-utils": "^4.0.0",
     "@types/node": "^25.5.2",
+    "eslint": "^10.11.0",
     "happy-dom": "^20.8.9",
     "nuxt": "^4.0.0",
+    "playwright-core": "^1.63.0",
     "typescript": "^5.7.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "vue-tsc": "^3.3.11"
   }
 }
