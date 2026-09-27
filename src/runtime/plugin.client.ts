@@ -12,16 +12,28 @@ export default defineNuxtPlugin((nuxtApp) => {
   if (config.autoTracking && isCounterEnabled(config)) {
     const head = injectHead()
 
-    const nextHeadRender = (): Promise<void> =>
+    // `afterUpdate`: skip renders of updates made before the call, wait for a render that follows a new head update
+    const nextHeadRender = (afterUpdate = false): Promise<void> =>
       new Promise((resolve) => {
+        let offRender: (() => void) | undefined
         const done = () => {
           clearTimeout(timer)
-          off()
-          // A macrotask later: unhead clears `dirty` in a finally that runs after dom:rendered
+          offUpdate?.()
+          offRender?.()
+          // A macrotask later: unhead v2 clears `dirty` in a finally that runs after dom:rendered
           setTimeout(resolve)
         }
         const timer = setTimeout(done, HEAD_RENDER_TIMEOUT_MS)
-        const off = head.hooks.hook('dom:rendered', done)
+        const waitForRender = () => {
+          offRender = head.hooks?.hook('dom:rendered', done)
+        }
+        const offUpdate = afterUpdate
+          ? head.hooks?.hook('entries:updated', () => {
+              offUpdate?.()
+              waitForRender()
+            })
+          : undefined
+        if (!afterUpdate) waitForRender()
       })
     // Nuxt renders the head after page:finish without awaiting it; `dirty` means that render is still pending
     const headRendered = (): Promise<void> => head.dirty ? nextHeadRender() : Promise.resolve()
@@ -53,9 +65,10 @@ export default defineNuxtPlugin((nuxtApp) => {
         })
         // The entry page
         nuxtApp.hook('app:suspense:resolve', flush)
-        // An error page (e.g. a client-side 404) replaces the page without any page hook: wait for its head
+        // An error page (e.g. a client-side 404) replaces the page without any page hook: wait for its head.
+        // unhead v3 first renders updates queued before the error, so wait for a render after the error page's update
         nuxtApp.hook('app:error', () => {
-          void nextHeadRender().then(callback)
+          void nextHeadRender(true).then(callback)
         })
       },
       getTitle: async () => {
