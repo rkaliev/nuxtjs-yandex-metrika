@@ -5,6 +5,7 @@ import { HIT_LOG, navigateToAbout, openPage } from './helpers'
 import type { TrackedPage } from './helpers'
 
 type Page = TrackedPage['page']
+type Route = Parameters<Parameters<Page['route']>[1]>[0]
 
 const SCRIPT_GLOB = '**/metrika/tag.js'
 
@@ -70,6 +71,19 @@ describe('e2e tracking in production', async () => {
     await page.close()
   })
 
+  it('should not wait for tag.js before hydration', async () => {
+    let held: Route | undefined
+    // tag.js never answers until the end of the test; openPage waits for hydration
+    const { page } = await openPage('/', page => page.route(SCRIPT_GLOB, (route) => {
+      held = route
+    }))
+
+    expect((await ymCalls(page))[0]?.[1]).toBe('init')
+
+    await held?.fulfill({ contentType: 'text/javascript', body: '' })
+    await page.close()
+  })
+
   // Characterizes current behavior: the entry page is not tracked (fixed in part 3)
   it('should not send a hit for the entry page', async () => {
     const { page } = await openWithStubbedScript('/')
@@ -100,7 +114,11 @@ describe('e2e tracking in production', async () => {
   })
 
   it('should use the mock api after a failed script load', async () => {
-    const { page, logsWith } = await openWithFailingScript('/')
+    const { page, consoleArgs, logsWith } = await openWithFailingScript('/')
+    // The load runs in the background: navigate only after the switch to the mock
+    await expect.poll(() => consoleArgs.some(args =>
+      String(args[0]).includes('Failed to load Yandex Metrika script. Falling back to mock API.'),
+    )).toBe(true)
 
     await navigateToAbout(page)
 
