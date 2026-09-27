@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [3.1.0] - 2026-09-27
 
 Statistics change after upgrading: the entry page is counted (page views go up, most visibly for single-page sessions), failed navigations and navigations to the same URL are no longer counted, and hits carry the title of their page. See [Upgrading to 3.1](./README.md#upgrading-to-31).
 
