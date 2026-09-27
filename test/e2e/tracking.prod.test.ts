@@ -84,6 +84,8 @@ describe('e2e tracking in production', async () => {
         requestAnimationFrame(check)
       })
     })
+    // goto resolves once isHydrating is false; the check above records it on the next animation frame
+    await page.waitForFunction(() => (window as unknown as { hydratedAt?: number }).hydratedAt !== undefined)
 
     const { hydratedAt, domContentLoaded } = await page.evaluate(() => ({
       hydratedAt: (window as unknown as { hydratedAt: number }).hydratedAt,
