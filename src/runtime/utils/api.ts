@@ -29,3 +29,7 @@ export function buildInitOptions(config: ModuleOptions): Record<string, unknown>
   }
   return result
 }
+
+export function initCounter(id: string, config: ModuleOptions): void {
+  window.ym(id, 'init', buildInitOptions(config))
+}
