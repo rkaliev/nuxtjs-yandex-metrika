@@ -8,6 +8,7 @@ const __dir = dirname(fileURLToPath(import.meta.url))
 const rootDir = resolve(__dir, '../../playground')
 
 const MISSING_ID_WARNING = 'Counter ID is not set'
+const TRACK_HASH_WARNING = 'counted twice'
 
 /** Loads playground with `options` and returns the text of every warning the build logged */
 async function buildWarnings(options: Record<string, unknown>): Promise<string[]> {
@@ -182,6 +183,21 @@ describe('module registration', () => {
   it('should not warn at build time when the counter is disabled', async () => {
     const warnings = await buildWarnings({ id: '', disabled: true })
     expect(warnings.some(text => text.includes(MISSING_ID_WARNING))).toBe(false)
+  })
+
+  it('should warn at build time when trackHash is used with autoTracking', async () => {
+    const warnings = await buildWarnings({ id: '99999999', trackHash: true })
+    expect(warnings.some(text => text.includes(TRACK_HASH_WARNING))).toBe(true)
+  })
+
+  it('should not warn about trackHash without autoTracking', async () => {
+    const warnings = await buildWarnings({ id: '99999999', trackHash: true, autoTracking: false })
+    expect(warnings.some(text => text.includes(TRACK_HASH_WARNING))).toBe(false)
+  })
+
+  it('should not warn about trackHash when the counter is disabled', async () => {
+    const warnings = await buildWarnings({ id: '99999999', trackHash: true, disabled: true })
+    expect(warnings.some(text => text.includes(TRACK_HASH_WARNING))).toBe(false)
   })
 
   it('should register the yandex-metrika type template', async () => {

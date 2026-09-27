@@ -29,9 +29,13 @@ export default defineNuxtModule<ModuleOptions>({
       DEFAULT_OPTIONS,
     ) as Required<ModuleOptions>
 
+    // Created in setup so it follows the logLevel Nuxt applies
+    const logger = useLogger('nuxt-yandex-metrika')
     if (!resolvedOptions.id && !resolvedOptions.disabled) {
-      // Created in setup so it follows the logLevel Nuxt applies
-      useLogger('nuxt-yandex-metrika').warn('Counter ID is not set. Set yandexMetrika.id or NUXT_PUBLIC_YANDEX_METRIKA_ID (it can also be set at runtime); until then the mock API is used.')
+      logger.warn('Counter ID is not set. Set yandexMetrika.id or NUXT_PUBLIC_YANDEX_METRIKA_ID (it can also be set at runtime); until then the mock API is used.')
+    }
+    if (resolvedOptions.trackHash && resolvedOptions.autoTracking && !resolvedOptions.disabled) {
+      logger.warn('trackHash: Metrika counts hash changes itself, and autoTracking already sends a hit for router hash changes, so a hash change can be counted twice. Set autoTracking: false or trackHash: false.')
     }
 
     // Merge into runtimeConfig.public
