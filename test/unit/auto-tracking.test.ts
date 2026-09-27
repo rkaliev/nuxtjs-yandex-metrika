@@ -199,6 +199,23 @@ describe('setupAutoTracking', () => {
       expect(hit.mock.calls).toStrictEqual([['/', {}]])
     })
 
+    it('should drop the page hit waiting for its title when consent comes after a newer navigation', async () => {
+      const { hit, navigate, ready, enter, state, readyCallbacks, tracking } = setup()
+      await enter()
+      navigate('/about', '/')
+      hit.mockClear()
+
+      // /about awaits its title while /contacts is already pending
+      const sending = readyCallbacks[0]!()
+      navigate('/contacts', '/about')
+      tracking.onConsentGranted()
+      await sending
+      state.title = 'Contacts'
+      await ready()
+
+      expect(hit.mock.calls).toStrictEqual([['/contacts', { title: 'Contacts' }]])
+    })
+
     it('should use the consent page as referer for the next navigation', async () => {
       const { hit, navigate, ready, enter, state, tracking } = setup()
       await enter()
