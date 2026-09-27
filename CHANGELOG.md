@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- `engines.node` aligned with Nuxt 4: `^20.19.0 || >=22.12.0`
+- `engines.node` aligned with Nuxt 4.5: `^22.19.0 || ^24.11.0 || >=26.0.0` (Node 20 reached end-of-life on 2026-04-30)
 
 ### Fixed
 
