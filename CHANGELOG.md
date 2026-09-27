@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Types for consumer apps: `$yandexMetrika` (`useNuxtApp()` and templates) is `YandexMetrikaApi`, `useRuntimeConfig().public.yandexMetrika` is `Required<ModuleOptions>`
+- `YandexMetrikaApi`, `HitOptions` and `YandexMetrikaInitOptions` are exported from the package (`import type { … } from '@rkaliev/nuxt-yandex-metrika'`)
+- Known limitation: with `skipLibCheck: false` TypeScript reports TS2430 on `PublicRuntimeConfig`, because Nuxt infers a narrower type from the default values; the Nuxt default `skipLibCheck: true` is unaffected
+
 ### Changed
 
 - The missing counter id warning is printed at build time (and in the dev browser) instead of in the production browser
