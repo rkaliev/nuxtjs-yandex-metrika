@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag to publish, e.g. v3.1.1
+        required: true
+        type: string
+      dist-tag:
+        description: npm dist-tag
+        required: true
+        default: latest
+        type: string
+      dry-run:
+        description: Run every step, but don't upload to npm
+        required: true
+        default: true
+        type: boolean
+
+# One publish at a time; never cancel a publish in progress
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # npm trusted publishing is bound to this workflow and environment
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      # Inputs go through env, not into the script text
+      - name: Check the tag matches package.json
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          node -e 'const v=require("./package.json").version;if(process.env.TAG!=="v"+v){console.log(`::error::Tag ${process.env.TAG} does not match package.json version ${v}`);process.exit(1)}'
+      - run: npm ci
+      - run: npm run dev:prepare
+      - run: npm run lint
+      - run: npm run test:types
+      - run: npm test
+      - run: npm run build
+      # Authenticated with OIDC, no npm token
+      - name: Publish
+        env:
+          DIST_TAG: ${{ inputs.dist-tag }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          args=(--provenance --access public --tag "$DIST_TAG")
+          if [ "$DRY_RUN" = true ]; then args+=(--dry-run); fi
+          npm publish "${args[@]}"
