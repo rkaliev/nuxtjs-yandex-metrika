@@ -26,6 +26,7 @@ Statistics change after upgrading: the entry page is counted (page views go up, 
 - Hit URLs and referers include `app.baseURL`
 - Loading `tag.js` no longer blocks hydration; calls are queued until it loads, and the API still falls back to the mock if the load fails
 - `tag.js` is not inserted again when it is already on the page
+- With an app's own `error.vue`, the error page hit is sent within 300 ms instead of after the 1 s head timeout (leaving the error page before the hit is sent drops it)
 - The `<noscript>` pixel is rendered on Nuxt 4 (`innerHTML` instead of `children`, which unhead v2 ignores)
 - Published runtime type declarations (`dist/runtime/**/*.d.ts`) were empty: module options and `useYandexMetrika()` are now typed for consumers, and the empty plugin declaration no longer turns the injections of the app's other plugins (`useNuxtApp().$api` and the like) into `unknown`
 
