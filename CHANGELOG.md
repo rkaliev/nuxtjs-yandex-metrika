@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - `engines.node` aligned with Nuxt 4: `^20.19.0 || >=22.12.0`
 
+### Fixed
+
+- Published runtime type declarations (`dist/runtime/**/*.d.ts`) were empty: module options and `useYandexMetrika()` are now typed for consumers
+
 ## [3.0.0] - 2026-04-08
 
 ### Breaking
