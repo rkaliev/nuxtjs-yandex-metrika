@@ -42,6 +42,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
+      - run: npm run dev:prepare
       - run: npm test
       - run: npm run build
 
@@ -54,5 +55,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run dev:prepare
       - run: npx playwright-core install --with-deps chromium
       - run: npm run test:e2e
