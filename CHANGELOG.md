@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [3.2.0] - Unreleased
+## [3.2.0] - 2026-09-28
 
 ### Added
 
@@ -17,6 +17,8 @@ All notable changes to this project will be documented in this file.
 - `YandexMetrikaApi` has a new method, `grantConsent()`: code that implements the interface itself (a test mock, for example) needs to add it
 
 ## [3.1.1] - 2026-09-27
+
+Not published to npm: these fixes ship in 3.2.0.
 
 ### Fixed
 
