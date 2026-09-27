@@ -37,7 +37,7 @@ export default defineNuxtModule<ModuleOptions>({
     if (resolvedOptions.noJS && resolvedOptions.id && !resolvedOptions.disabled) {
       const noscript = nuxt.options.app.head.noscript = nuxt.options.app.head.noscript || []
       ;(noscript as Array<Record<string, string>>).push({
-        children: `<div><img src="${NOSCRIPT_PIXEL_URL}/${resolvedOptions.id}" style="position:absolute;left:-9999px;" alt=""/></div>`,
+        innerHTML: `<div><img src="${NOSCRIPT_PIXEL_URL}/${resolvedOptions.id}" style="position:absolute;left:-9999px;" alt=""/></div>`,
       })
     }
 

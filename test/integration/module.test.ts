@@ -47,8 +47,8 @@ describe('module registration', () => {
     })
 
     try {
-      const noscript = nuxt.options.app.head.noscript as Array<{ children: string }>
-      const pixel = noscript.find(n => n.children?.includes('mc.yandex.ru/watch/99999999'))
+      const noscript = nuxt.options.app.head.noscript as Array<{ innerHTML: string }>
+      const pixel = noscript.find(n => n.innerHTML?.includes('mc.yandex.ru/watch/99999999'))
       expect(pixel).toBeTruthy()
     }
     finally {
@@ -70,8 +70,8 @@ describe('module registration', () => {
     })
 
     try {
-      const noscript = nuxt.options.app.head.noscript as Array<{ children: string }> | undefined
-      const pixel = noscript?.find(n => n.children?.includes('mc.yandex.ru/watch/99999999'))
+      const noscript = nuxt.options.app.head.noscript as Array<{ innerHTML: string }> | undefined
+      const pixel = noscript?.find(n => n.innerHTML?.includes('mc.yandex.ru/watch/99999999'))
       expect(pixel).toBeFalsy()
     }
     finally {
@@ -92,8 +92,8 @@ describe('module registration', () => {
     })
 
     try {
-      const noscript = nuxt.options.app.head.noscript as Array<{ children: string }> | undefined
-      const pixel = noscript?.find(n => n.children?.includes('mc.yandex.ru/watch'))
+      const noscript = nuxt.options.app.head.noscript as Array<{ innerHTML: string }> | undefined
+      const pixel = noscript?.find(n => n.innerHTML?.includes('mc.yandex.ru/watch'))
       expect(pixel).toBeFalsy()
     }
     finally {

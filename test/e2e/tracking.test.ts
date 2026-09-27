@@ -23,6 +23,11 @@ describe('e2e tracking', async () => {
     expect(html).toContain('About')
   })
 
+  it('should render the noscript pixel', async () => {
+    const html = await $fetch('/')
+    expect(html).toContain('<noscript><div><img src="https://mc.yandex.ru/watch/12345678"')
+  })
+
   // Characterizes current behavior: the entry page is not tracked (fixed in part 3)
   it('should not log a hit for the entry page', async () => {
     const { page, logsWith, settled } = await openPage('/')
