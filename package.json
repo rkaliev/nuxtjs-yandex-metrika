@@ -23,7 +23,9 @@
     "dev": "nuxi dev playground",
     "dev:build": "nuxi build playground",
     "test": "vitest run",
-    "test:watch": "vitest watch"
+    "test:watch": "vitest watch",
+    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
+    "test:types": "vue-tsc --noEmit && cd playground && vue-tsc --noEmit"
   },
   "author": "Ruslan Aliev",
   "contributors": [
@@ -68,6 +70,7 @@
     "happy-dom": "^20.8.9",
     "nuxt": "^4.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "vue-tsc": "^3.3.11"
   }
 }

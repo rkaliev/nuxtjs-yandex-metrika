@@ -13,7 +13,6 @@ describe('module registration', () => {
       cwd: rootDir,
       ready: true,
       overrides: {
-        // @ts-expect-error -- module option, typed via Nuxt augmentation
         yandexMetrika: {
           id: '99999999',
           debug: true,
@@ -39,7 +38,6 @@ describe('module registration', () => {
       cwd: rootDir,
       ready: true,
       overrides: {
-        // @ts-expect-error -- module option, typed via Nuxt augmentation
         yandexMetrika: {
           id: '99999999',
           noJS: true,
@@ -61,7 +59,6 @@ describe('module registration', () => {
       cwd: rootDir,
       ready: true,
       overrides: {
-        // @ts-expect-error -- module option, typed via Nuxt augmentation
         yandexMetrika: {
           id: '99999999',
           disabled: true,
@@ -84,7 +81,6 @@ describe('module registration', () => {
       cwd: rootDir,
       ready: true,
       overrides: {
-        // @ts-expect-error -- module option, typed via Nuxt augmentation
         yandexMetrika: {
           id: '',
           noJS: true,
