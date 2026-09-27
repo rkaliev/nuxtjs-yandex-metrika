@@ -10,6 +10,7 @@ describe('createApi', () => {
       'extLink',
       'file',
       'getClientID',
+      'grantConsent',
       'hit',
       'notBounce',
       'params',
@@ -36,5 +37,21 @@ describe('createApi', () => {
     ;(api.replacePhones as (...args: unknown[]) => void)('extra')
 
     expect(handler).toHaveBeenCalledWith('replacePhones', [])
+  })
+
+  it('should not pass grantConsent to the handler', () => {
+    const handler = vi.fn()
+
+    createApi(handler).grantConsent()
+
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('should call the given grantConsent', () => {
+    const grantConsent = vi.fn()
+
+    createApi(() => {}, grantConsent).grantConsent()
+
+    expect(grantConsent).toHaveBeenCalledOnce()
   })
 })

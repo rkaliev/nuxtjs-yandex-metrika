@@ -98,3 +98,32 @@ describe('createNoopApi', () => {
     expect(api.replacePhones()).toBeUndefined()
   })
 })
+
+describe('grantConsent', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('should log grantConsent in the mock when debug is true', () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    createMockApi(true).grantConsent()
+
+    expect(spy).toHaveBeenCalledWith('[nuxt-yandex-metrika] grantConsent')
+  })
+
+  it('should not log grantConsent in the mock without debug', () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    createMockApi(false).grantConsent()
+
+    expect(spy).not.toHaveBeenCalled()
+  })
+
+  it('should do nothing on grantConsent in the noop api', () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    expect(() => createNoopApi().grantConsent()).not.toThrow()
+    expect(spy).not.toHaveBeenCalled()
+  })
+})

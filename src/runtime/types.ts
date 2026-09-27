@@ -46,4 +46,6 @@ export interface YandexMetrikaApi {
   extLink(url: string, options?: Record<string, unknown>): void
   file(url: string, options?: Record<string, unknown>): void
   replacePhones(): void
+  /** Starts the counter when `requireConsent` is set; does nothing otherwise or when already granted */
+  grantConsent(): void
 }
