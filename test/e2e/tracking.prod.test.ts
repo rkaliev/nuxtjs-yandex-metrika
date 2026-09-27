@@ -84,11 +84,10 @@ describe('e2e tracking in production', async () => {
     await page.close()
   })
 
-  // Characterizes current behavior: the entry page is not tracked (fixed in part 3)
-  it('should not send a hit for the entry page', async () => {
+  it('should send a hit with the title for the entry page', async () => {
     const { page } = await openWithStubbedScript('/')
 
-    expect(await hitCalls(page)).toEqual([])
+    await expect.poll(() => hitCalls(page)).toEqual([['99999999', 'hit', '/', { title: 'Home' }]])
 
     await page.close()
   })
@@ -98,7 +97,10 @@ describe('e2e tracking in production', async () => {
 
     await navigateToAbout(page)
 
-    await expect.poll(() => hitCalls(page)).toEqual([['99999999', 'hit', '/about', { referer: '/' }]])
+    await expect.poll(() => hitCalls(page)).toEqual([
+      ['99999999', 'hit', '/', { title: 'Home' }],
+      ['99999999', 'hit', '/about', { referer: '/', title: 'About' }],
+    ])
 
     await page.close()
   })
@@ -122,7 +124,8 @@ describe('e2e tracking in production', async () => {
 
     await navigateToAbout(page)
 
-    await expect.poll(() => logsWith(HIT_LOG)).toEqual([[HIT_LOG, '/about', { referer: '/' }]])
+    // The entry hit may land in the ym queue or the mock, depending on when the load failed
+    await expect.poll(() => logsWith(HIT_LOG)).toContainEqual([HIT_LOG, '/about', { referer: '/', title: 'About' }])
 
     await page.close()
   })

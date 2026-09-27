@@ -28,12 +28,10 @@ describe('e2e tracking', async () => {
     expect(html).toContain('<noscript><div><img src="https://mc.yandex.ru/watch/12345678"')
   })
 
-  // Characterizes current behavior: the entry page is not tracked (fixed in part 3)
-  it('should not log a hit for the entry page', async () => {
-    const { page, logsWith, settled } = await openPage('/')
+  it('should log a hit with the title for the entry page', async () => {
+    const { page, logsWith } = await openPage('/')
 
-    await settled()
-    expect(logsWith(HIT_LOG)).toEqual([])
+    await expect.poll(() => logsWith(HIT_LOG)).toEqual([[HIT_LOG, '/', { title: 'Home' }]])
 
     await page.close()
   })
@@ -43,7 +41,38 @@ describe('e2e tracking', async () => {
 
     await navigateToAbout(page)
 
-    await expect.poll(() => logsWith(HIT_LOG)).toEqual([[HIT_LOG, '/about', { referer: '/' }]])
+    await expect.poll(() => logsWith(HIT_LOG)).toEqual([
+      [HIT_LOG, '/', { title: 'Home' }],
+      [HIT_LOG, '/about', { referer: '/', title: 'About' }],
+    ])
+
+    await page.close()
+  })
+
+  it('should not log a hit when navigating to the current page', async () => {
+    const { page, logsWith, settled } = await openPage('/')
+    await expect.poll(() => logsWith(HIT_LOG)).toHaveLength(1)
+
+    await page.click('a.nav-link[href="/"]')
+    // A negative check has no event to wait for: give the router guards time to run
+    await page.waitForTimeout(500)
+
+    await settled()
+    expect(logsWith(HIT_LOG)).toEqual([[HIT_LOG, '/', { title: 'Home' }]])
+
+    await page.close()
+  })
+
+  it('should log a hit when only the query changes', async () => {
+    const { page, logsWith } = await openPage('/about')
+    await expect.poll(() => logsWith(HIT_LOG)).toHaveLength(1)
+
+    await page.click('a[href="/about?tab=info"]')
+
+    await expect.poll(() => logsWith(HIT_LOG)).toEqual([
+      [HIT_LOG, '/about', { title: 'About' }],
+      [HIT_LOG, '/about?tab=info', { referer: '/about', title: 'About' }],
+    ])
 
     await page.close()
   })
