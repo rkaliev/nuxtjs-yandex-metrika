@@ -58,3 +58,18 @@ jobs:
       - run: npm run dev:prepare
       - run: npx playwright-core install --with-deps chromium
       - run: npm run test:e2e
+
+  # Nuxt before 4.5 ships unhead v2; the lockfile's Nuxt ships unhead v3. The plugin must work with both
+  e2e-nuxt-4-4:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm i --no-save nuxt@~4.4
+      - run: npm run dev:prepare
+      - run: npx playwright-core install --with-deps chromium
+      - run: npm run test:e2e
