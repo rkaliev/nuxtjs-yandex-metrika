@@ -191,6 +191,23 @@ npm run test:e2e     # Browser tests (first run: npx playwright-core install chr
 npm run build        # Build the module into dist/
 ```
 
+### Releasing
+
+Versions are published to npm by the manual `Release` workflow (`.github/workflows/release.yml`) with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers), so no npm token is needed and each version gets provenance.
+
+One-time setup:
+
+1. GitHub: Settings → Environments → create `npm` (optionally with required reviewers).
+2. npmjs.com: package settings → Trusted publishing → GitHub Actions, repository `rkaliev/nuxtjs-yandex-metrika`, workflow `release.yml`, environment `npm`.
+
+For each release:
+
+1. Bump `version` in `package.json`, add the `CHANGELOG.md` entry, push to `master` and wait for CI.
+2. Tag the commit: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+3. Actions → Release → Run workflow with the tag. `dry-run` is on by default: it runs every check and `npm publish --dry-run`.
+4. Run it again with `dry-run` off to publish. Use `dist-tag` for a release that must not become `latest`.
+5. Create the GitHub Release for the tag.
+
 ## License
 
 [MIT](./LICENSE)
