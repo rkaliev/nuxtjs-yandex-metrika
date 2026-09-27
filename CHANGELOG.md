@@ -17,7 +17,7 @@ Statistics change after upgrading: the entry page is counted (page views go up, 
 - The missing counter id warning is printed at build time (and in the dev browser) instead of in the production browser
 - `engines.node` aligned with Nuxt 4.5: `^22.19.0 || ^24.11.0 || >=26.0.0` (Node 20 reached end-of-life on 2026-04-30)
 - Works with both unhead v2 (Nuxt 4.0–4.4) and unhead v3 (Nuxt 4.5+); CI runs the browser tests on both
-- Development dependencies updated (lockfile only; the published package is unchanged)
+- Development dependencies updated; runtime dependencies and their ranges are unchanged
 
 ### Fixed
 
