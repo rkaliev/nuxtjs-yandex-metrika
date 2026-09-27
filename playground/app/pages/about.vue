@@ -11,6 +11,11 @@
   </div>
 </template>
 
+<script setup lang="ts">
+// Called during SSR too: the composable must return the noop API on the server
+useYandexMetrika().params({ page: 'about' })
+</script>
+
 <style scoped>
 .title {
   font-size: 1.5rem;
