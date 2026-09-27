@@ -158,7 +158,7 @@ export default defineNuxtConfig({
 })
 ```
 
-Until `grantConsent()` is called, `tag.js` is not loaded, the counter is not initialized, and nothing is sent. Calls made before consent (`reachGoal()`, `hit()`, auto-tracking page views) are dropped, not queued; with `debug: true` each one logs `dropped, waiting for consent: <method>`. The `<noscript>` pixel is not added, because it would set cookies for visitors without JavaScript, where consent can't stop it.
+Until `grantConsent()` is called, `tag.js` is not loaded, the counter is not initialized, and nothing is sent. Calls made before consent (`reachGoal()`, `hit()`, auto-tracking page views) are dropped, not queued; with `debug: true` each one logs `dropped, waiting for consent: <method>`. The `<noscript>` pixel is not added, because it would set cookies for visitors without JavaScript, where consent can't stop it. The pixel is decided at build time: if you turn `requireConsent` on only at runtime (`NUXT_PUBLIC_YANDEX_METRIKA_REQUIRE_CONSENT`), also set `noJS: false`. A `getClientID()` callback passed before consent is never called.
 
 Call `grantConsent()` when the visitor accepts:
 
