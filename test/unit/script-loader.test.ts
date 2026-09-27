@@ -4,6 +4,8 @@ import { loadScript } from '../../src/runtime/utils/script-loader'
 describe('loadScript', () => {
   let originalYm: typeof window.ym
   let fakeScript: Record<string, unknown>
+  let existingScript: HTMLScriptElement
+  let insertBeforeSpy: ReturnType<typeof vi.spyOn>
   const originalCreateElement = document.createElement.bind(document)
 
   beforeEach(() => {
@@ -27,12 +29,12 @@ describe('loadScript', () => {
 
     // Ensure there's a script element with parentNode for insertBefore
     const parent = document.createElement('div')
-    const existingScript = originalCreateElement('script')
+    existingScript = originalCreateElement('script') as HTMLScriptElement
     parent.appendChild(existingScript)
     vi.spyOn(document, 'getElementsByTagName').mockReturnValue(
       [existingScript] as unknown as HTMLCollectionOf<Element>,
     )
-    vi.spyOn(existingScript.parentNode!, 'insertBefore').mockReturnValue(fakeScript as unknown as Node)
+    insertBeforeSpy = vi.spyOn(existingScript.parentNode!, 'insertBefore').mockReturnValue(fakeScript as unknown as Node)
   })
 
   afterEach(() => {
@@ -90,6 +92,27 @@ describe('loadScript', () => {
     const promise = loadScript('https://mc.yandex.ru/metrika/tag.js')
 
     expect(window.ym).toBe(existingYm)
+
+    ;(fakeScript.onload as (ev: Event) => void)(new Event('load'))
+    await promise
+  })
+
+  it('should insert the script before the first script', async () => {
+    const promise = loadScript('https://mc.yandex.ru/metrika/tag.js')
+
+    expect(insertBeforeSpy).toHaveBeenCalledWith(fakeScript, existingScript)
+
+    ;(fakeScript.onload as (ev: Event) => void)(new Event('load'))
+    await promise
+  })
+
+  it('should append the script to head when the page has no scripts', async () => {
+    vi.mocked(document.getElementsByTagName).mockReturnValue([] as unknown as HTMLCollectionOf<Element>)
+    const appendSpy = vi.spyOn(document.head, 'appendChild').mockImplementation(node => node)
+
+    const promise = loadScript('https://mc.yandex.ru/metrika/tag.js')
+
+    expect(appendSpy).toHaveBeenCalledWith(fakeScript)
 
     ;(fakeScript.onload as (ev: Event) => void)(new Event('load'))
     await promise

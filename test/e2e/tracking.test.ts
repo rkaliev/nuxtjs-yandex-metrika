@@ -1,19 +1,16 @@
 import { describe, it, expect } from 'vitest'
 import { fileURLToPath } from 'node:url'
-import { setup, $fetch, createPage } from '@nuxt/test-utils/e2e'
+import { setup, $fetch } from '@nuxt/test-utils/e2e'
+import { HIT_LOG, navigateToAbout, openPage } from './helpers'
 
 describe('e2e tracking', async () => {
   await setup({
     rootDir: fileURLToPath(new URL('../../playground', import.meta.url)),
     browser: true,
-    // Dev mode: the plugin uses the mock API, whose debug logs the browser test asserts on
+    // Dev mode: the plugin uses the mock API, whose debug logs the browser tests assert on.
+    // test-utils runs `nuxi _dev` in playground, which ignores `nuxtConfig` overrides:
+    // this suite relies on playground/nuxt.config.ts (id set, debug: true).
     dev: true,
-    nuxtConfig: {
-      yandexMetrika: {
-        id: '99999999',
-        debug: true,
-      },
-    },
   })
 
   it('renders home page via SSR without errors', async () => {
@@ -21,39 +18,38 @@ describe('e2e tracking', async () => {
     expect(html).toContain('Home')
   })
 
-  it('renders about page via SSR without errors', async () => {
+  it('should render a page that calls the composable during SSR', async () => {
     const html = await $fetch('/about')
     expect(html).toContain('About')
   })
 
-  it('tracks navigation and reachGoal in browser', async () => {
-    const page = await createPage('/')
-    const logs: string[] = []
+  // Characterizes current behavior: the entry page is not tracked (fixed in part 3)
+  it('should not log a hit for the entry page', async () => {
+    const { page, logsWith, settled } = await openPage('/')
 
-    page.on('console', (msg: { text(): string }) => {
-      logs.push(msg.text())
-    })
+    await settled()
+    expect(logsWith(HIT_LOG)).toEqual([])
 
-    // Click on About link
-    await page.click('a[href="/about"]')
-    await page.waitForURL('**/about')
+    await page.close()
+  })
 
-    // Navigate back
-    await page.click('a[href="/"]')
-    await page.waitForURL('**/')
+  it('should log a hit with referer on client-side navigation', async () => {
+    const { page, logsWith } = await openPage('/')
 
-    // Click reachGoal button
-    await page.click('button')
+    await navigateToAbout(page)
 
-    // Wait for logs to flush
-    await page.waitForTimeout(500)
+    await expect.poll(() => logsWith(HIT_LOG)).toEqual([[HIT_LOG, '/about', { referer: '/' }]])
 
-    // Dev mode uses mock — check that debug logs were emitted
-    const hitLogs = logs.filter(l => l.includes('[nuxt-yandex-metrika] hit:'))
-    const goalLogs = logs.filter(l => l.includes('[nuxt-yandex-metrika] reachGoal:'))
+    await page.close()
+  })
 
-    expect(hitLogs.length).toBeGreaterThanOrEqual(1)
-    expect(goalLogs.length).toBeGreaterThanOrEqual(1)
+  it('should log reachGoal from the composable', async () => {
+    const { page, logsWith } = await openPage('/')
+
+    await page.click('button.btn')
+
+    await expect.poll(() => logsWith('[nuxt-yandex-metrika] reachGoal:').map(args => args.slice(0, 3)))
+      .toEqual([['[nuxt-yandex-metrika] reachGoal:', 'test_goal', { page: 'home' }]])
 
     await page.close()
   })

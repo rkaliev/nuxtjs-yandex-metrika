@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createRealApi, buildInitOptions } from '../../src/runtime/utils/api'
+import { createRealApi, buildInitOptions, initCounter } from '../../src/runtime/utils/api'
 
 describe('createRealApi', () => {
   beforeEach(() => {
@@ -79,6 +79,17 @@ describe('createRealApi', () => {
     delete window.ym
     const api = createRealApi('123')
     expect(() => api.hit('/page')).not.toThrow()
+  })
+})
+
+describe('initCounter', () => {
+  beforeEach(() => {
+    window.ym = vi.fn() as unknown as typeof window.ym
+  })
+
+  it('should init the counter with init options', () => {
+    initCounter('123', { clickmap: true, debug: true })
+    expect(window.ym).toHaveBeenCalledWith('123', 'init', { clickmap: true })
   })
 })
 
