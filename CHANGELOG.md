@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - Unreleased
+
+### Added
+
+- Options for the remaining documented Metrika init parameters: `trackHash`, `sendTitle`, `childIframe`, `trustedDomains`, `disableYtm`, `type`, `params`, `userParams`, with Metrika's defaults. Empty `params`, `userParams` and `trustedDomains` are not sent
+- `sendTitle: false` also keeps auto-tracking hits free of `title`
+- A build-time warning when `trackHash` is combined with `autoTracking`, which can count a hash change twice
+
+### Changed
+
+- `init` also receives `trackHash`, `sendTitle`, `childIframe`, `disableYtm` and `type` with Metrika's default values; the counter behaves as before
+
 ## [3.1.1] - 2026-09-27
 
 ### Fixed
