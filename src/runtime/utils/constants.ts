@@ -27,4 +27,5 @@ export const DEFAULT_OPTIONS: Required<ModuleOptions> = {
   debug: false,
   noJS: true,
   autoTracking: true,
+  requireConsent: false,
 }

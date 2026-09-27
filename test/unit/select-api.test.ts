@@ -144,6 +144,159 @@ describe('selectApi', () => {
   })
 })
 
+describe('selectApi with requireConsent', () => {
+  let fakeScript: { async: boolean, src: string, onload: (() => void) | null, onerror: (() => void) | null }
+  let log: ReturnType<typeof vi.spyOn>
+  let error: ReturnType<typeof vi.spyOn>
+  const originalCreateElement = document.createElement.bind(document)
+
+  function consentConfig(overrides: ModuleOptions = {}) {
+    return config({ requireConsent: true, ...overrides })
+  }
+
+  beforeEach(() => {
+    window.ym = vi.fn() as unknown as typeof window.ym
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    log = vi.spyOn(console, 'log').mockImplementation(() => {})
+    error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    fakeScript = { async: false, src: '', onload: null, onerror: null }
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      if (tag === 'script') return fakeScript as unknown as HTMLScriptElement
+      return originalCreateElement(tag)
+    })
+    vi.spyOn(document, 'getElementsByTagName').mockReturnValue([] as unknown as HTMLCollectionOf<Element>)
+    vi.spyOn(document.head, 'appendChild').mockImplementation(node => node)
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('should not load the script or init before consent', () => {
+    selectApi(consentConfig(), false)
+
+    expect(document.createElement).not.toHaveBeenCalledWith('script')
+    expect(window.ym).not.toHaveBeenCalled()
+  })
+
+  it('should drop calls made before consent', () => {
+    const api = selectApi(consentConfig(), false)
+
+    api.reachGoal('x')
+    api.grantConsent()
+
+    expect(window.ym).not.toHaveBeenCalledWith('99999999', 'reachGoal', expect.anything(), undefined, undefined)
+    expect(vi.mocked(window.ym).mock.calls.map(call => call[1])).toEqual(['init'])
+  })
+
+  it('should log dropped calls when debug is set', () => {
+    const api = selectApi(consentConfig(), false)
+
+    api.reachGoal('x')
+
+    expect(log).toHaveBeenCalledWith('[nuxt-yandex-metrika] dropped, waiting for consent: reachGoal')
+  })
+
+  it('should not log dropped calls without debug', () => {
+    const api = selectApi(consentConfig({ debug: false }), false)
+
+    api.reachGoal('x')
+
+    expect(log).not.toHaveBeenCalled()
+  })
+
+  it('should load the script, init and forward calls after grantConsent', () => {
+    const api = selectApi(consentConfig(), false)
+
+    api.grantConsent()
+    api.hit('/x')
+
+    expect(fakeScript.src).toBe(SCRIPT_URL)
+    expect(window.ym).toHaveBeenCalledWith('99999999', 'init', expect.objectContaining({ defer: true }))
+    expect(window.ym).toHaveBeenCalledWith('99999999', 'hit', '/x', undefined)
+  })
+
+  it('should call onConsentGranted after the counter starts', () => {
+    const onConsentGranted = vi.fn(() => {
+      expect(window.ym).toHaveBeenCalledWith('99999999', 'init', expect.anything())
+    })
+    const api = selectApi(consentConfig(), false, onConsentGranted)
+
+    api.grantConsent()
+
+    expect(onConsentGranted).toHaveBeenCalledOnce()
+  })
+
+  it('should not load, init or notify again on a second grantConsent', () => {
+    const onConsentGranted = vi.fn()
+    const api = selectApi(consentConfig(), false, onConsentGranted)
+
+    api.grantConsent()
+    api.grantConsent()
+
+    expect(vi.mocked(document.createElement).mock.calls.filter(([tag]) => tag === 'script')).toHaveLength(1)
+    expect(vi.mocked(window.ym).mock.calls.filter(call => call[1] === 'init')).toHaveLength(1)
+    expect(onConsentGranted).toHaveBeenCalledOnce()
+  })
+
+  it('should grant consent without onConsentGranted', () => {
+    const api = selectApi(consentConfig(), false)
+
+    expect(() => api.grantConsent()).not.toThrow()
+    expect(window.ym).toHaveBeenCalledWith('99999999', 'init', expect.anything())
+  })
+
+  it('should fall back to the mock when the script fails after consent', async () => {
+    const api = selectApi(consentConfig(), false)
+    api.grantConsent()
+
+    fakeScript.onerror!()
+    await vi.waitFor(() => expect(error).toHaveBeenCalled())
+    api.hit('/x')
+
+    expect(log).toHaveBeenCalledWith('[nuxt-yandex-metrika] hit:', '/x', undefined)
+  })
+
+  it('should drop calls in dev before consent and pass them to the mock after it', () => {
+    const api = selectApi(consentConfig(), true)
+
+    api.hit('/before')
+    api.grantConsent()
+    api.hit('/after')
+
+    expect(log).not.toHaveBeenCalledWith('[nuxt-yandex-metrika] hit:', '/before', undefined)
+    expect(log).toHaveBeenCalledWith('[nuxt-yandex-metrika] hit:', '/after', undefined)
+  })
+
+  it('should notify onConsentGranted in dev', () => {
+    const onConsentGranted = vi.fn()
+
+    selectApi(consentConfig(), true, onConsentGranted).grantConsent()
+
+    expect(onConsentGranted).toHaveBeenCalledOnce()
+  })
+
+  it.each([
+    ['disabled', { disabled: true }],
+    ['without an id', { id: '' }],
+  ])('should return a mock whose grantConsent is safe when %s', (_, overrides) => {
+    const api = selectApi(consentConfig(overrides), false)
+
+    expect(() => api.grantConsent()).not.toThrow()
+    expect(document.createElement).not.toHaveBeenCalledWith('script')
+  })
+
+  it('should keep the counter running without requireConsent and ignore grantConsent', () => {
+    const onConsentGranted = vi.fn()
+    const api = selectApi(config(), false, onConsentGranted)
+
+    api.grantConsent()
+
+    expect(vi.mocked(window.ym).mock.calls.filter(call => call[1] === 'init')).toHaveLength(1)
+    expect(onConsentGranted).not.toHaveBeenCalled()
+  })
+})
+
 describe('isCounterEnabled', () => {
   it('should be false when disabled', () => {
     expect(isCounterEnabled({ id: '99999999', disabled: true })).toBe(false)

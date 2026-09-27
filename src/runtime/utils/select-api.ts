@@ -9,7 +9,11 @@ export function isCounterEnabled(config: ModuleOptions): boolean {
   return !config.disabled && !!config.id
 }
 
-export function selectApi(config: Required<ModuleOptions>, dev: boolean): YandexMetrikaApi {
+export function selectApi(
+  config: Required<ModuleOptions>,
+  dev: boolean,
+  onConsentGranted?: () => void,
+): YandexMetrikaApi {
   // Mode 1: disabled or no ID → mock
   if (!isCounterEnabled(config)) {
     // Production builds already warned at build time
@@ -25,19 +29,50 @@ export function selectApi(config: Required<ModuleOptions>, dev: boolean): Yandex
     if (config.debug) {
       console.warn('[nuxt-yandex-metrika] Debug is enabled: you\'ll see all API calls in the console.')
     }
-    return createMockApi(config.debug)
   }
 
-  // Mode 3: production → load the real script in the background, calls queue in the ym stub meanwhile
+  let target: YandexMetrikaApi
+  const start = () => {
+    if (dev) {
+      target = createMockApi(config.debug)
+      return
+    }
+    target = startCounter(config, (fallback) => {
+      target = fallback
+    })
+  }
+
+  let grantConsent: (() => void) | undefined
+  if (config.requireConsent) {
+    // Nothing is loaded, sent or kept until consent
+    target = createApi((method) => {
+      if (config.debug) console.log(`[nuxt-yandex-metrika] dropped, waiting for consent: ${method}`)
+    })
+    let granted = false
+    grantConsent = () => {
+      if (granted) return
+      granted = true
+      start()
+      onConsentGranted?.()
+    }
+  }
+  else {
+    start()
+  }
+
+  return createApi((method, args) => (target[method] as (...args: unknown[]) => void)(...args), grantConsent)
+}
+
+// Mode 3: production → load the real script in the background, calls queue in the ym stub meanwhile
+function startCounter(config: Required<ModuleOptions>, onFailure: (fallback: YandexMetrikaApi) => void): YandexMetrikaApi {
   // A runtime env override reaches the config as a number (Nuxt parses it with destr)
   const id = String(config.id)
-  let target = createRealApi(id)
   const url = config.useCDN ? SCRIPT_URL_CDN : SCRIPT_URL
   // loadScript installs the ym stub synchronously, so init below is queued first
   loadScript(url).catch((error) => {
     console.error('[nuxt-yandex-metrika] Failed to load Yandex Metrika script. Falling back to mock API.', error)
-    target = createMockApi(config.debug)
+    onFailure(createMockApi(config.debug))
   })
   initCounter(id, config)
-  return createApi((method, args) => (target[method] as (...args: unknown[]) => void)(...args))
+  return createRealApi(id)
 }

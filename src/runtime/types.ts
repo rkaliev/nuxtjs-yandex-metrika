@@ -24,6 +24,7 @@ export interface ModuleOptions extends YandexMetrikaInitOptions {
   debug?: boolean
   noJS?: boolean
   autoTracking?: boolean
+  requireConsent?: boolean
 }
 
 export interface HitOptions {
