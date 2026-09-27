@@ -41,21 +41,27 @@ export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle,
     pending = url === lastSent ? undefined : url
   })
 
-  const send = async (url: string, referer: string | undefined) => {
-    // The entry page has no referer here: Metrika uses the document's own
-    const options: HitOptions = referer === undefined ? {} : { referer }
+  // The hit being sent; consent while it awaits the title takes away its pre-consent referer
+  let inFlight: { referer: string | undefined } | undefined
+
+  const send = async (url: string, current: { referer: string | undefined }) => {
     // Without getTitle the hit goes out right away, with no wait for the head
-    if (page.getTitle) options.title = await page.getTitle()
+    const title = page.getTitle ? await page.getTitle() : undefined
+    // The entry page has no referer here: Metrika uses the document's own
+    const options: HitOptions = current.referer === undefined ? {} : { referer: current.referer }
+    if (title !== undefined) options.title = title
     api.hit(url, options)
   }
 
   page.onPageReady(async () => {
     if (pending === undefined) return
     const url = pending
-    const referer = lastSent
+    const current = { referer: lastSent }
     pending = undefined
     lastSent = url
-    await send(url, referer)
+    inFlight = current
+    await send(url, current)
+    if (inFlight === current) inFlight = undefined
   })
 
   let consented = false
@@ -63,9 +69,10 @@ export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle,
     onConsentGranted: () => {
       if (consented) return
       consented = true
-      // Hits before consent were dropped: the page being rendered goes out as the entry page, without referer
+      // Hits before consent were dropped: the page being rendered or sent goes out as the entry page, without referer
       if (pending !== undefined) lastSent = undefined
-      else if (lastSent !== undefined) void send(lastSent, undefined)
+      else if (inFlight) inFlight.referer = undefined
+      else if (lastSent !== undefined) void send(lastSent, { referer: undefined })
     },
   }
 }

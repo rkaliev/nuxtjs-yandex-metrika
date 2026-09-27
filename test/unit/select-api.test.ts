@@ -268,6 +268,15 @@ describe('selectApi with requireConsent', () => {
     expect(log).toHaveBeenCalledWith('[nuxt-yandex-metrika] hit:', '/after', undefined)
   })
 
+  it.each([
+    ['with requireConsent', { requireConsent: true }],
+    ['without requireConsent', { requireConsent: false }],
+  ])('should log grantConsent in dev with debug %s', (_, overrides) => {
+    selectApi(config(overrides), true).grantConsent()
+
+    expect(log).toHaveBeenCalledWith('[nuxt-yandex-metrika] grantConsent')
+  })
+
   it('should notify onConsentGranted in dev', () => {
     const onConsentGranted = vi.fn()
 

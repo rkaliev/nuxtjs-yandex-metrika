@@ -224,12 +224,30 @@ describe('setupAutoTracking', () => {
       expect(hit).toHaveBeenCalledOnce()
     })
 
-    it('should not send a hit on consent before any page', () => {
-      const { hit, tracking } = setup()
+    it('should send the entry page once without referer when consent comes before any page', async () => {
+      const { hit, enter, tracking } = setup()
 
       tracking.onConsentGranted()
-
       expect(hit).not.toHaveBeenCalled()
+      await enter()
+
+      expect(hit.mock.calls).toStrictEqual([['/', { title: 'Home' }]])
+    })
+
+    it('should send one hit without referer when consent comes while the page hit waits for its title', async () => {
+      const { hit, navigate, enter, state, readyCallbacks, tracking } = setup()
+      await enter()
+      navigate('/about', '/')
+      state.title = 'About'
+      hit.mockClear()
+
+      // The ready callback has taken the pending URL and awaits the title
+      const sending = readyCallbacks[0]!()
+      tracking.onConsentGranted()
+      await sending
+      await Promise.resolve()
+
+      expect(hit.mock.calls).toStrictEqual([['/about', { title: 'About' }]])
     })
   })
 })

@@ -42,7 +42,9 @@ export function selectApi(
     })
   }
 
-  let grantConsent: (() => void) | undefined
+  // The mock's grantConsent logs it in dev with debug
+  const logGrant = dev ? createMockApi(config.debug).grantConsent : () => {}
+  let grantConsent = logGrant
   if (config.requireConsent) {
     // Nothing is loaded, sent or kept until consent
     target = createApi((method) => {
@@ -50,6 +52,7 @@ export function selectApi(
     })
     let granted = false
     grantConsent = () => {
+      logGrant()
       if (granted) return
       granted = true
       start()
