@@ -7,6 +7,14 @@ export interface YandexMetrikaInitOptions {
   triggerEvent?: boolean
   ut?: string
   webvisor?: boolean
+  trackHash?: boolean
+  sendTitle?: boolean
+  childIframe?: boolean
+  disableYtm?: boolean
+  type?: number
+  params?: Record<string, unknown> | unknown[]
+  userParams?: Record<string, unknown>
+  trustedDomains?: string[]
 }
 
 export interface ModuleOptions extends YandexMetrikaInitOptions {

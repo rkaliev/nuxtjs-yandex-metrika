@@ -102,6 +102,11 @@ describe('selectApi', () => {
       triggerEvent: true,
       ut: 'noindex',
       webvisor: false,
+      trackHash: false,
+      sendTitle: true,
+      childIframe: false,
+      disableYtm: false,
+      type: 0,
     })
   })
 

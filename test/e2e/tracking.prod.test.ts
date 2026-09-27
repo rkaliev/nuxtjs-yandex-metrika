@@ -45,6 +45,11 @@ describe('e2e tracking in production', async () => {
       triggerEvent: true,
       ut: 'noindex',
       webvisor: false,
+      trackHash: false,
+      sendTitle: true,
+      childIframe: false,
+      disableYtm: false,
+      type: 0,
     }])
 
     await page.close()

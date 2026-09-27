@@ -57,6 +57,38 @@ describe('module registration', () => {
     }
   })
 
+  it('should store the Metrika defaults for the new init options', async () => {
+    const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { id: '99999999' } } })
+
+    try {
+      expect(nuxt.options.runtimeConfig.public.yandexMetrika).toMatchObject({
+        trackHash: false,
+        sendTitle: true,
+        childIframe: false,
+        disableYtm: false,
+        type: 0,
+        params: {},
+        userParams: {},
+        trustedDomains: [],
+      })
+    }
+    finally {
+      await nuxt.close()
+    }
+  })
+
+  it('should keep trustedDomains as configured', async () => {
+    const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { id: '99999999', trustedDomains: ['a.com'] } } })
+
+    try {
+      const config = nuxt.options.runtimeConfig.public.yandexMetrika as Record<string, unknown>
+      expect(config.trustedDomains).toEqual(['a.com'])
+    }
+    finally {
+      await nuxt.close()
+    }
+  })
+
   it('should store a numeric id in runtimeConfig as a string', async () => {
     // A JS nuxt.config can set it as a number
     const nuxt = await loadNuxt({ cwd: rootDir, ready: true, overrides: { yandexMetrika: { id: 99999999 as unknown as string } } })
