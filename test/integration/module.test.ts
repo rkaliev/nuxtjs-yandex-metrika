@@ -28,7 +28,8 @@ describe('module registration', () => {
       expect(config.noJS).toBe(true)
       expect(config.defer).toBe(true) // default
       expect(config.autoTracking).toBe(true) // default
-    } finally {
+    }
+    finally {
       await nuxt.close()
     }
   })
@@ -49,7 +50,8 @@ describe('module registration', () => {
       const noscript = nuxt.options.app.head.noscript as Array<{ children: string }>
       const pixel = noscript.find(n => n.children?.includes('mc.yandex.ru/watch/99999999'))
       expect(pixel).toBeTruthy()
-    } finally {
+    }
+    finally {
       await nuxt.close()
     }
   })
@@ -71,7 +73,8 @@ describe('module registration', () => {
       const noscript = nuxt.options.app.head.noscript as Array<{ children: string }> | undefined
       const pixel = noscript?.find(n => n.children?.includes('mc.yandex.ru/watch/99999999'))
       expect(pixel).toBeFalsy()
-    } finally {
+    }
+    finally {
       await nuxt.close()
     }
   })
@@ -92,7 +95,8 @@ describe('module registration', () => {
       const noscript = nuxt.options.app.head.noscript as Array<{ children: string }> | undefined
       const pixel = noscript?.find(n => n.children?.includes('mc.yandex.ru/watch'))
       expect(pixel).toBeFalsy()
-    } finally {
+    }
+    finally {
       await nuxt.close()
     }
   })

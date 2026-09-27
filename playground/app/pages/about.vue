@@ -1,6 +1,8 @@
 <template>
   <div>
-    <h1 class="title">About</h1>
+    <h1 class="title">
+      About
+    </h1>
     <p>This page exists to test navigation tracking.</p>
     <p class="hint">
       Navigate back to <NuxtLink to="/">Home</NuxtLink> and check the browser console —

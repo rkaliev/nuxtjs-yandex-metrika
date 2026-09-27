@@ -1,24 +1,81 @@
 <template>
   <div>
-    <h1 class="title">Yandex Metrika — API Demo</h1>
-    <p class="subtitle">Click buttons to call API methods. Logs appear below (and in DevTools console).</p>
+    <h1 class="title">
+      Yandex Metrika — API Demo
+    </h1>
+    <p class="subtitle">
+      Click buttons to call API methods. Logs appear below (and in DevTools console).
+    </p>
 
     <div class="buttons">
-      <button class="btn" @click="callReachGoal">reachGoal</button>
-      <button class="btn" @click="callParams">params</button>
-      <button class="btn" @click="callUserParams">userParams</button>
-      <button class="btn" @click="callSetUserID">setUserID</button>
-      <button class="btn" @click="callNotBounce">notBounce</button>
-      <button class="btn" @click="callExtLink">extLink</button>
-      <button class="btn" @click="callGetClientID">getClientID</button>
-      <button class="btn btn-clear" @click="logs = []">Clear logs</button>
+      <button
+        class="btn"
+        @click="callReachGoal"
+      >
+        reachGoal
+      </button>
+      <button
+        class="btn"
+        @click="callParams"
+      >
+        params
+      </button>
+      <button
+        class="btn"
+        @click="callUserParams"
+      >
+        userParams
+      </button>
+      <button
+        class="btn"
+        @click="callSetUserID"
+      >
+        setUserID
+      </button>
+      <button
+        class="btn"
+        @click="callNotBounce"
+      >
+        notBounce
+      </button>
+      <button
+        class="btn"
+        @click="callExtLink"
+      >
+        extLink
+      </button>
+      <button
+        class="btn"
+        @click="callGetClientID"
+      >
+        getClientID
+      </button>
+      <button
+        class="btn btn-clear"
+        @click="logs = []"
+      >
+        Clear logs
+      </button>
     </div>
 
     <div class="log-panel">
-      <h2 class="log-title">Logs ({{ logs.length }})</h2>
-      <pre v-if="logs.length" class="log-content"><template v-for="(entry, i) in logs" :key="i">{{ entry }}
+      <h2 class="log-title">
+        Logs ({{ logs.length }})
+      </h2>
+      <pre
+        v-if="logs.length"
+        class="log-content"
+      ><template
+v-for="(entry, i) in logs"
+                                         :key="i"
+>{{ entry }}
 </template></pre>
-      <p v-else class="log-empty">No calls yet. Click a button above.</p>
+      <p
+        v-else
+        class="log-empty"
+      >
+        No calls yet. Click a button above.
+      </p>
     </div>
   </div>
 </template>

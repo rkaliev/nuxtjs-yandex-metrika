@@ -8,7 +8,7 @@ describe('loadScript', () => {
 
   beforeEach(() => {
     originalYm = window.ym
-    // @ts-expect-error — cleanup
+    // @ts-expect-error -- ym is a required global; removed to test a clean window
     delete window.ym
 
     // Mock createElement to return a plain object for script elements
