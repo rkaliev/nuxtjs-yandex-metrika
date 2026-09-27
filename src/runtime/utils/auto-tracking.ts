@@ -22,7 +22,12 @@ export interface PageLifecycle {
  * Sends one hit per successful URL change, including the entry page.
  * The URL is recorded on navigation and sent once the page is ready, so the hit carries the new page's title.
  */
-export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle, api: YandexMetrikaApi): void {
+export interface AutoTracking {
+  /** Sends the current page once consent is granted; pages before it are never sent, not even as referer */
+  onConsentGranted(): void
+}
+
+export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle, api: YandexMetrikaApi): AutoTracking {
   let pending: string | undefined
   let lastSent: string | undefined
 
@@ -36,16 +41,31 @@ export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle,
     pending = url === lastSent ? undefined : url
   })
 
+  const send = async (url: string, referer: string | undefined) => {
+    // The entry page has no referer here: Metrika uses the document's own
+    const options: HitOptions = referer === undefined ? {} : { referer }
+    // Without getTitle the hit goes out right away, with no wait for the head
+    if (page.getTitle) options.title = await page.getTitle()
+    api.hit(url, options)
+  }
+
   page.onPageReady(async () => {
     if (pending === undefined) return
     const url = pending
     const referer = lastSent
     pending = undefined
     lastSent = url
-    // The entry page has no referer here: Metrika uses the document's own
-    const options: HitOptions = referer === undefined ? {} : { referer }
-    // Without getTitle the hit goes out right away, with no wait for the head
-    if (page.getTitle) options.title = await page.getTitle()
-    api.hit(url, options)
+    await send(url, referer)
   })
+
+  let consented = false
+  return {
+    onConsentGranted: () => {
+      if (consented) return
+      consented = true
+      // Hits before consent were dropped: the page being rendered goes out as the entry page, without referer
+      if (pending !== undefined) lastSent = undefined
+      else if (lastSent !== undefined) void send(lastSent, undefined)
+    },
+  }
 }
