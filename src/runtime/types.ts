@@ -24,6 +24,7 @@ export interface ModuleOptions extends YandexMetrikaInitOptions {
   debug?: boolean
   noJS?: boolean
   autoTracking?: boolean
+  requireConsent?: boolean
 }
 
 export interface HitOptions {
@@ -46,4 +47,6 @@ export interface YandexMetrikaApi {
   extLink(url: string, options?: Record<string, unknown>): void
   file(url: string, options?: Record<string, unknown>): void
   replacePhones(): void
+  /** Starts the counter when `requireConsent` is set; does nothing otherwise or when already granted */
+  grantConsent(): void
 }

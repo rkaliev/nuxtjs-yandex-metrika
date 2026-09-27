@@ -22,7 +22,17 @@ export interface PageLifecycle {
  * Sends one hit per successful URL change, including the entry page.
  * The URL is recorded on navigation and sent once the page is ready, so the hit carries the new page's title.
  */
-export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle, api: YandexMetrikaApi): void {
+export interface AutoTracking {
+  /** Sends the current page once consent is granted; pages before it are never sent, not even as referer */
+  onConsentGranted(): void
+}
+
+interface SendingHit {
+  referer: string | undefined
+  cancelled?: boolean
+}
+
+export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle, api: YandexMetrikaApi): AutoTracking {
   let pending: string | undefined
   let lastSent: string | undefined
 
@@ -36,16 +46,43 @@ export function setupAutoTracking(router: NavigationRouter, page: PageLifecycle,
     pending = url === lastSent ? undefined : url
   })
 
+  // The hit being sent; consent while it awaits the title takes away its pre-consent referer,
+  // or cancels it when a newer page is pending (then that page is the current one)
+  let inFlight: SendingHit | undefined
+
+  const send = async (url: string, current: SendingHit) => {
+    // Without getTitle the hit goes out right away, with no wait for the head
+    const title = page.getTitle ? await page.getTitle() : undefined
+    if (current.cancelled) return
+    // The entry page has no referer here: Metrika uses the document's own
+    const options: HitOptions = current.referer === undefined ? {} : { referer: current.referer }
+    if (title !== undefined) options.title = title
+    api.hit(url, options)
+  }
+
   page.onPageReady(async () => {
     if (pending === undefined) return
     const url = pending
-    const referer = lastSent
+    const current: SendingHit = { referer: lastSent }
     pending = undefined
     lastSent = url
-    // The entry page has no referer here: Metrika uses the document's own
-    const options: HitOptions = referer === undefined ? {} : { referer }
-    // Without getTitle the hit goes out right away, with no wait for the head
-    if (page.getTitle) options.title = await page.getTitle()
-    api.hit(url, options)
+    inFlight = current
+    await send(url, current)
+    if (inFlight === current) inFlight = undefined
   })
+
+  let consented = false
+  return {
+    onConsentGranted: () => {
+      if (consented) return
+      consented = true
+      // Hits before consent were dropped: the page being rendered or sent goes out as the entry page, without referer
+      if (inFlight) {
+        if (pending !== undefined) inFlight.cancelled = true
+        else inFlight.referer = undefined
+      }
+      if (pending !== undefined) lastSent = undefined
+      else if (!inFlight && lastSent !== undefined) void send(lastSent, { referer: undefined })
+    },
+  }
 }

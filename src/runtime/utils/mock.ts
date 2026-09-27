@@ -8,6 +8,10 @@ export function createMockApi(debug: boolean): YandexMetrikaApi {
     if (debug) {
       console.log(`${LOG_PREFIX} ${method}:`, ...args)
     }
+  }, () => {
+    if (debug) {
+      console.log(`${LOG_PREFIX} grantConsent`)
+    }
   })
 }
 

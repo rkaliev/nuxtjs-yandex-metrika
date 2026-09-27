@@ -77,3 +77,11 @@ export async function pushRoutes(page: Page, paths: string[]): Promise<void> {
     }
   }, paths)
 }
+
+/** Calls `$yandexMetrika.grantConsent()` inside the page, as a cookie banner would */
+export async function grantConsent(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const app = (document.querySelector('#__nuxt') as unknown as { __vue_app__: { config: { globalProperties: { $yandexMetrika: { grantConsent(): void } } } } }).__vue_app__
+    app.config.globalProperties.$yandexMetrika.grantConsent()
+  })
+}

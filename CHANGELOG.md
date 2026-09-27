@@ -9,10 +9,12 @@ All notable changes to this project will be documented in this file.
 - Options for the remaining documented Metrika init parameters: `trackHash`, `sendTitle`, `childIframe`, `trustedDomains`, `disableYtm`, `type`, `params`, `userParams`, with Metrika's defaults. Empty `params`, `userParams` and `trustedDomains` are not sent
 - `sendTitle: false` also keeps auto-tracking hits free of `title`
 - A build-time warning when `trackHash` is combined with `autoTracking`, which can count a hash change twice
+- `requireConsent` option and `grantConsent()`: the counter waits for cookie consent. Until then `tag.js` is not loaded, nothing is sent, calls are dropped and the `<noscript>` pixel is left out; after consent the current page is sent without a referer. See [Cookie consent](./README.md#cookie-consent)
 
 ### Changed
 
 - `init` also receives `trackHash`, `sendTitle`, `childIframe`, `disableYtm` and `type` with Metrika's default values; the counter behaves as before
+- `YandexMetrikaApi` has a new method, `grantConsent()`: code that implements the interface itself (a test mock, for example) needs to add it
 
 ## [3.1.1] - 2026-09-27
 

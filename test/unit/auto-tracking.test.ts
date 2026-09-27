@@ -22,7 +22,7 @@ function setup(
   }
   const api = createNoopApi()
   const hit = vi.spyOn(api, 'hit')
-  setupAutoTracking(router, page, api)
+  const tracking = setupAutoTracking(router, page, api)
 
   const navigate = (to: string, from: string, failure?: unknown) =>
     guards.forEach(guard => guard({ fullPath: to }, { fullPath: from }, failure))
@@ -33,7 +33,7 @@ function setup(
     navigate('/', '/')
     await ready()
   }
-  return { hit, navigate, ready, enter, state, readyCallbacks }
+  return { hit, navigate, ready, enter, state, readyCallbacks, tracking }
 }
 
 describe('setupAutoTracking', () => {
@@ -159,5 +159,112 @@ describe('setupAutoTracking', () => {
     void readyCallbacks[0]!()
 
     expect(hit).toHaveBeenCalledWith('/', {})
+  })
+
+  describe('onConsentGranted', () => {
+    it('should send one hit for the current page without referer when consent comes after it rendered', async () => {
+      const { hit, navigate, ready, enter, state, tracking } = setup()
+      await enter()
+      navigate('/about', '/')
+      state.title = 'About'
+      await ready()
+      hit.mockClear()
+
+      tracking.onConsentGranted()
+      await vi.waitFor(() => expect(hit).toHaveBeenCalled())
+
+      expect(hit.mock.calls).toStrictEqual([['/about', { title: 'About' }]])
+    })
+
+    it('should send the pending hit once without referer when consent comes before the page rendered', async () => {
+      const { hit, navigate, ready, enter, state, tracking } = setup()
+      await enter()
+      navigate('/about', '/')
+      hit.mockClear()
+
+      tracking.onConsentGranted()
+      state.title = 'About'
+      await ready()
+
+      expect(hit.mock.calls).toStrictEqual([['/about', { title: 'About' }]])
+    })
+
+    it('should send the current page without a title when the page gives no title', async () => {
+      const { hit, enter, tracking } = setup(undefined, undefined, false)
+      await enter()
+      hit.mockClear()
+
+      tracking.onConsentGranted()
+
+      expect(hit.mock.calls).toStrictEqual([['/', {}]])
+    })
+
+    it('should drop the page hit waiting for its title when consent comes after a newer navigation', async () => {
+      const { hit, navigate, ready, enter, state, readyCallbacks, tracking } = setup()
+      await enter()
+      navigate('/about', '/')
+      hit.mockClear()
+
+      // /about awaits its title while /contacts is already pending
+      const sending = readyCallbacks[0]!()
+      navigate('/contacts', '/about')
+      tracking.onConsentGranted()
+      await sending
+      state.title = 'Contacts'
+      await ready()
+
+      expect(hit.mock.calls).toStrictEqual([['/contacts', { title: 'Contacts' }]])
+    })
+
+    it('should use the consent page as referer for the next navigation', async () => {
+      const { hit, navigate, ready, enter, state, tracking } = setup()
+      await enter()
+      tracking.onConsentGranted()
+      await vi.waitFor(() => expect(hit).toHaveBeenCalledTimes(2))
+      hit.mockClear()
+
+      navigate('/about', '/')
+      state.title = 'About'
+      await ready()
+
+      expect(hit.mock.calls).toStrictEqual([['/about', { referer: '/', title: 'About' }]])
+    })
+
+    it('should not send the current page again on a second consent', async () => {
+      const { hit, enter, tracking } = setup(undefined, undefined, false)
+      await enter()
+      hit.mockClear()
+
+      tracking.onConsentGranted()
+      tracking.onConsentGranted()
+
+      expect(hit).toHaveBeenCalledOnce()
+    })
+
+    it('should send the entry page once without referer when consent comes before any page', async () => {
+      const { hit, enter, tracking } = setup()
+
+      tracking.onConsentGranted()
+      expect(hit).not.toHaveBeenCalled()
+      await enter()
+
+      expect(hit.mock.calls).toStrictEqual([['/', { title: 'Home' }]])
+    })
+
+    it('should send one hit without referer when consent comes while the page hit waits for its title', async () => {
+      const { hit, navigate, enter, state, readyCallbacks, tracking } = setup()
+      await enter()
+      navigate('/about', '/')
+      state.title = 'About'
+      hit.mockClear()
+
+      // The ready callback has taken the pending URL and awaits the title
+      const sending = readyCallbacks[0]!()
+      tracking.onConsentGranted()
+      await sending
+      await Promise.resolve()
+
+      expect(hit.mock.calls).toStrictEqual([['/about', { title: 'About' }]])
+    })
   })
 })
