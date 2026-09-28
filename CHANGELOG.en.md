@@ -1,0 +1,112 @@
+# Changelog
+
+[Русский](./CHANGELOG.md) | **English**
+
+All notable changes to this project will be documented in this file.
+
+## [3.2.1] - 2026-09-28
+
+### Changed
+
+- Documentation is in Russian by default: `README.md` and `CHANGELOG.md` are in Russian, the English versions are `README.en.md` and `CHANGELOG.en.md`. The npm package description is in both languages
+- Releasing: the npm trusted publisher must allow publishing directly (Allowed actions)
+
+## [3.2.0] - 2026-09-28
+
+### Added
+
+- Options for the remaining documented Metrika init parameters: `trackHash`, `sendTitle`, `childIframe`, `trustedDomains`, `disableYtm`, `type`, `params`, `userParams`, with Metrika's defaults. Empty `params`, `userParams` and `trustedDomains` are not sent
+- `sendTitle: false` also keeps auto-tracking hits free of `title`
+- A build-time warning when `trackHash` is combined with `autoTracking`, which can count a hash change twice
+- `requireConsent` option and `grantConsent()`: the counter waits for cookie consent. Until then `tag.js` is not loaded, nothing is sent, calls are dropped and the `<noscript>` pixel is left out; after consent the current page is sent without a referer. See [Cookie consent](./README.en.md#cookie-consent)
+
+### Changed
+
+- `init` also receives `trackHash`, `sendTitle`, `childIframe`, `disableYtm` and `type` with Metrika's default values; the counter behaves as before
+- `YandexMetrikaApi` has a new method, `grantConsent()`: code that implements the interface itself (a test mock, for example) needs to add it
+
+## [3.1.1] - 2026-09-27
+
+Not published to npm: these fixes ship in 3.2.0.
+
+### Fixed
+
+- `tag.js` is not loaded a second time when the page already has the official Metrika snippet (it loads `tag.js?id=<counter>`) or the script from the other source (`mc.yandex.ru` or the jsDelivr mirror)
+- A numeric counter id (a runtime `NUXT_PUBLIC_YANDEX_METRIKA_ID` override, which Nuxt parses as a number, or `id: 12345` in a JS config) is passed to Metrika and stored in `runtimeConfig` as a string
+
+### Changed
+
+- Internal: the plugin's head render waiting moved to its own module with unit tests; tracking behavior is unchanged
+
+## [3.1.0] - 2026-09-27
+
+Statistics change after upgrading: the entry page is counted (page views go up, most visibly for single-page sessions), failed navigations and navigations to the same URL are no longer counted, and hits carry the title of their page. See [Upgrading to 3.1](./README.en.md#upgrading-to-31).
+
+### Added
+
+- Types for consumer apps: `$yandexMetrika` (`useNuxtApp()` and templates) is `YandexMetrikaApi`, `useRuntimeConfig().public.yandexMetrika` is `Required<ModuleOptions>`
+- `YandexMetrikaApi`, `HitOptions` and `YandexMetrikaInitOptions` are exported from the package (`import type { … } from '@rkaliev/nuxt-yandex-metrika'`)
+- Known limitation: with `skipLibCheck: false` TypeScript reports TS2430 on `PublicRuntimeConfig`, because Nuxt infers a narrower type from the default values; the Nuxt default `skipLibCheck: true` is unaffected
+
+### Changed
+
+- The missing counter id warning is printed at build time (and in the dev browser) instead of in the production browser
+- `engines.node` aligned with Nuxt 4.5: `^22.19.0 || ^24.11.0 || >=26.0.0` (Node 20 reached end-of-life on 2026-04-30)
+- Works with both unhead v2 (Nuxt 4.0–4.4) and unhead v3 (Nuxt 4.5+); CI runs the browser tests on both
+- Development dependencies updated; runtime dependencies and their ranges are unchanged
+
+### Fixed
+
+- The entry page is now tracked: auto-tracking sends a hit for it (previously the first navigation was skipped)
+- Auto-tracking sends a hit once the page has rendered, with its `title`; no hit for failed navigations or when the URL did not change
+- Hit URLs and referers include `app.baseURL`
+- Loading `tag.js` no longer blocks hydration; calls are queued until it loads, and the API still falls back to the mock if the load fails
+- `tag.js` is not inserted again when it is already on the page
+- With an app's own `error.vue`, the error page hit is sent within 300 ms instead of after the 1 s head timeout (leaving the error page before the hit is sent drops it)
+- The `<noscript>` pixel is rendered on Nuxt 4 (`innerHTML` instead of `children`, which unhead v2 ignores)
+- Published runtime type declarations (`dist/runtime/**/*.d.ts`) were empty: module options and `useYandexMetrika()` are now typed for consumers, and the empty plugin declaration no longer turns the injections of the app's other plugins (`useNuxtApp().$api` and the like) into `unknown`
+
+## [3.0.0] - 2026-04-08
+
+### Breaking
+
+- Minimum Nuxt version: 4.0.0 (drop Nuxt 3 support)
+- Minimum Node.js version: 18
+
+### Changed
+
+- Update @nuxt/kit to ^4.0.0
+- Update @nuxt/test-utils to ^4.0.0
+- Update vitest to ^4.0.0
+- Migrate playground to Nuxt 4 directory structure
+
+## [2.0.4] - 2026-04-08
+
+### Added
+
+- CHANGELOG.md
+- `engines` field in package.json (node >=18)
+- `peerDependencies` field in package.json (nuxt ^3.16.0)
+- Git tags and GitHub Releases for v2.0.2 and v2.0.3
+
+## [2.0.3] - 2026-04-07
+
+### Fixed
+
+- Update package.json exports for @nuxt/module-builder v1
+
+### Changed
+
+- Bump esbuild and @nuxt/module-builder dependencies
+- Bump happy-dom dependency
+
+## [2.0.2] - 2026-04-07
+
+### Changed
+
+- Complete rewrite for Nuxt 3 with TypeScript
+- Three-tier plugin strategy: disabled → mock (dev) → real (prod)
+- `defer: true` by default (SPA mode — manual hit tracking)
+- SSR safety via noop API on server, client-only plugin
+- Composable `useYandexMetrika()` as primary API
+- Config via `runtimeConfig.public.yandexMetrika`
